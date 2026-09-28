@@ -14,7 +14,7 @@ from tests.utils.factories import (
 from pydantic import SecretStr
 
 from settings import TelegramSettings
-from src.auth.service import TokenService
+from src.auth.services import TokenService
 
 
 class TestContainer(Container):

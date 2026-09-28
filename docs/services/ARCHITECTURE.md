@@ -44,7 +44,23 @@
 | PATCH | `/orders/{id}/status` | A | смена статуса по матрице переходов |
 
 Маршруты: [`src/bootstrap/endpoints`](../../src/bootstrap/endpoints). Маппинг доменных
-исключений на HTTP — [`server_factory.py`](../../src/bootstrap/server_factory.py).
+исключений на HTTP — [`server_factory.py`](../../src/bootstrap/server_factory.py);
+каждый отказ логируется `WARNING` в одном месте — [`http_exception_wrapper`](../../src/bootstrap/utils/http_exception_wrapper.py).
+
+## Авторизация
+
+FastAPI-зависимости [`get_current_user` / `get_current_admin`](../../src/bootstrap/dependencies/auth.py)
+живут в `bootstrap` (входной слой), а не в домене. Токен → пользователь разрешает use case
+[`AuthenticateByToken`](../../src/auth/uc/session.py); отказы — доменные исключения
+(`NotAuthenticatedException`, `TokenException` → 401, `PermissionDeniedException` → 403),
+`HTTPException` в коде не бросается.
+
+## Логирование
+
+Успех сценария пишется `INFO` один раз в use case (константное сообщение, в `extra` только
+скалярные id): вход/выход, создание заказа, смена статуса, отмена, создание/изменение/удаление
+товаров и категорий, создание пользователя админом. Запросы логирует
+[`LoggingMiddleware`](../../src/bootstrap/utils/logging_middleware.py), сервисы и адаптеры не логируют.
 
 ## Инфраструктура
 

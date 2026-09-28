@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status
 from dependency_injector.wiring import inject, Provide
 
 from di import Container
-from src.auth.presentation import get_current_user, get_current_admin
+from src.bootstrap.dependencies.auth import get_current_user, get_current_admin
 from src.orders.models import Order
 from src.orders.schema import UpdateOrderStatusRequest
 from src.orders.uc.crud import (

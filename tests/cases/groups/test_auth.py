@@ -83,3 +83,44 @@ class TestTelegramAuth(BaseTestGroup, ModelsFixtures):
 
     async def test_logout_requires_auth(self, fastapi_client):
         assert fastapi_client.post("/api/auth/logout").status_code == 401
+
+
+class TestAuthorization(BaseTestGroup, ModelsFixtures):
+    async def test_no_header_is_401_with_json_detail(self, fastapi_client):
+        response = fastapi_client.get("/api/auth/me")
+
+        assert response.status_code == 401
+        assert response.json() == {"detail": "Not authenticated"}
+
+    async def test_wrong_scheme_is_401(self, fastapi_client):
+        response = fastapi_client.get(
+            "/api/auth/me", headers={"Authorization": "Basic abc"}
+        )
+
+        assert response.status_code == 401
+        assert response.json() == {"detail": "Invalid authentication scheme"}
+
+    async def test_garbage_token_is_401(self, fastapi_client):
+        response = fastapi_client.get(
+            "/api/auth/me", headers={"Authorization": "Bearer garbage"}
+        )
+
+        assert response.status_code == 401
+
+    async def test_user_is_403_on_admin_endpoint(self, fastapi_client, auth_headers):
+        response = fastapi_client.post(
+            "/api/categories/", json={"name": "x"}, headers=auth_headers
+        )
+
+        assert response.status_code == 403
+        assert "Admin access required" in response.json()["detail"]
+
+    async def test_logout_revokes_token(self, fastapi_client, auth_headers):
+        assert (
+            fastapi_client.post("/api/auth/logout", headers=auth_headers).status_code
+            == 204
+        )
+
+        assert (
+            fastapi_client.get("/api/auth/me", headers=auth_headers).status_code == 401
+        )

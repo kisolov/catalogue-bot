@@ -13,7 +13,8 @@
 | `POST /users/` только у админа: роль `admin` нельзя выдать себе при регистрации | [`endpoints/users.py`](../../src/bootstrap/endpoints/users.py) |
 | Первый вход создаёт пользователя только с ролью `user`; роль существующего не меняется | [`LoginWithTelegram`](../../src/auth/uc/telegram.py) |
 | `initData` принимается, если подпись верна и `auth_date` не старше `TELEGRAM_INIT_DATA_MAX_AGE_SECONDS` (24 ч) и не «из будущего» (>60 с) | [`TelegramInitDataService`](../../src/auth/telegram.py) |
-| Токен действителен, только пока он есть в Redis: `logout` отзывает его немедленно | [`TokenService.verify_token`](../../src/auth/service.py) |
+| Токен действителен, только пока он есть в Redis: `logout` отзывает его немедленно | [`TokenService.verify_token`](../../src/auth/services.py) |
+| Валидный токен удалённого пользователя — 401 (`InvalidTokenException`), не 404 | [`AuthenticateByToken`](../../src/auth/uc/session.py) |
 | Каждый файл миграции применяется один раз (`schema_migrations`); БД без этой таблицы, но с `users`, считается уже мигрированной | [`create_tables_from_migrations`](../../src/shared/db.py) |
 
 ## Особенности Pony ORM

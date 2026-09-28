@@ -29,6 +29,9 @@ from src.shared.exceptions import (
     InvalidOrderTransitionException,
     InvalidInitDataException,
     InitDataExpiredException,
+    TokenException,
+    NotAuthenticatedException,
+    PermissionDeniedException,
 )
 
 
@@ -60,6 +63,9 @@ class ServerFactory:
                 InvalidOrderTransitionException: http_exception_wrapper(409),
                 InvalidInitDataException: http_exception_wrapper(401),
                 InitDataExpiredException: http_exception_wrapper(401),
+                TokenException: http_exception_wrapper(401),
+                NotAuthenticatedException: http_exception_wrapper(401),
+                PermissionDeniedException: http_exception_wrapper(403),
             },
             root_path="/api",
         )

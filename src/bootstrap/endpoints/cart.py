@@ -8,7 +8,7 @@ from src.cart.models import Cart, RemoveCartItemCmd, CartItem, AddCartItemCmd
 from src.cart.schema import AddInCartRequest
 from src.cart.uc.crud import GetCart, ClearCart
 from src.users.models import User
-from src.auth.presentation import get_current_user
+from src.bootstrap.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/cart", tags=["cart"])
 

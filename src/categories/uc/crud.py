@@ -2,6 +2,7 @@ from typing import List
 
 from src.categories.models import Category, CreateCategoryCmd, UpdateCategoryCmd
 from src.categories.services import CategoryService
+from src.shared.logger import logger
 
 
 class CreateCategory:
@@ -9,7 +10,9 @@ class CreateCategory:
         self.service = service
 
     async def __call__(self, cmd: CreateCategoryCmd) -> Category:
-        return self.service.create(cmd)
+        category = self.service.create(cmd)
+        logger.info("Category created", extra={"category_id": category.id})
+        return category
 
 
 class UpdateCategory:
@@ -17,7 +20,9 @@ class UpdateCategory:
         self.service = service
 
     async def __call__(self, cmd: UpdateCategoryCmd) -> Category:
-        return self.service.update(cmd)
+        category = self.service.update(cmd)
+        logger.info("Category updated", extra={"category_id": category.id})
+        return category
 
 
 class GetCategoryById:
@@ -42,3 +47,4 @@ class DeleteCategory:
 
     async def __call__(self, category_id: int) -> None:
         self.service.delete(category_id)
+        logger.info("Category deleted", extra={"category_id": category_id})

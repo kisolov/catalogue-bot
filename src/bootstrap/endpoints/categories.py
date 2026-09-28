@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Response, status
 from dependency_injector.wiring import inject, Provide
 
 from di import Container
-from src.auth.presentation import get_current_admin
+from src.bootstrap.dependencies.auth import get_current_admin
 from src.categories.models import Category, CreateCategoryCmd, UpdateCategoryCmd
 from src.categories.schema import CreateCategoryRequest, UpdateCategoryRequest
 from src.categories.uc.crud import (

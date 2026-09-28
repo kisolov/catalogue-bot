@@ -2,6 +2,7 @@ from typing import List
 
 from src.products.models import Product, CreateProductCmd, UpdateProductCmd
 from src.products.services import ProductService
+from src.shared.logger import logger
 
 
 class CreateProduct:
@@ -9,7 +10,9 @@ class CreateProduct:
         self.service = service
 
     async def __call__(self, cmd: CreateProductCmd) -> Product:
-        return self.service.create(cmd)
+        product = self.service.create(cmd)
+        logger.info("Product created", extra={"product_id": product.id})
+        return product
 
 
 class UpdateProduct:
@@ -17,7 +20,9 @@ class UpdateProduct:
         self.service = service
 
     async def __call__(self, cmd: UpdateProductCmd) -> Product:
-        return self.service.update(cmd)
+        product = self.service.update(cmd)
+        logger.info("Product updated", extra={"product_id": product.id})
+        return product
 
 
 class GetProductById:
@@ -42,3 +47,4 @@ class DeleteProduct:
 
     async def __call__(self, product_id: int) -> None:
         self.service.delete(product_id)
+        logger.info("Product deleted", extra={"product_id": product_id})

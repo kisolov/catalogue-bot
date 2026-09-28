@@ -68,3 +68,13 @@ class InvalidInitDataException(DomainException):
 class InitDataExpiredException(DomainException):
     def __init__(self):
         super().__init__("Данные Telegram устарели")
+
+
+class NotAuthenticatedException(DomainException):
+    def __init__(self, reason: str = "Not authenticated"):
+        super().__init__(reason)
+
+
+class PermissionDeniedException(DomainException):
+    def __init__(self):
+        super().__init__("Insufficient permissions. Admin access required.")

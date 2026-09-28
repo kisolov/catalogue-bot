@@ -5,7 +5,7 @@ from di import Container
 from src.users.models import User, CreateUserCmd
 from src.users.schema import CreateUserRequest
 from src.users.uc.crud import GetUserByTelegramId, GetUserById, CreateUser
-from src.auth.presentation import get_current_admin
+from src.bootstrap.dependencies.auth import get_current_admin
 
 router = APIRouter(prefix="/users", tags=["users"])
 

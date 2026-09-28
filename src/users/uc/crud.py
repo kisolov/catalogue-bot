@@ -1,5 +1,6 @@
 from src.users.models import CreateUserCmd
 from src.users.services import UserService
+from src.shared.logger import logger
 
 
 class CreateUser:
@@ -7,7 +8,9 @@ class CreateUser:
         self.user_service = user_service
 
     async def __call__(self, cmd: CreateUserCmd):
-        return self.user_service.create(cmd)
+        user = self.user_service.create(cmd)
+        logger.info("User created by admin", extra={"user_id": user.id})
+        return user
 
 
 class GetUserById:

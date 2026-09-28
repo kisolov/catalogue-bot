@@ -8,8 +8,9 @@ from settings import (
     TelegramSettings,
 )
 from src.auth.redis_adapter import RedisTokenRepository
-from src.auth.service import TokenService
+from src.auth.services import TokenService
 from src.auth.telegram import TelegramInitDataService
+from src.auth.uc.session import AuthenticateByToken, GetMe
 from src.auth.uc.telegram import LoginWithTelegram, Logout
 from src.cart.adapters.pony import PonyCartRepository
 from src.categories.adapters.pony import PonyCategoryRepository
@@ -75,6 +76,10 @@ class Container(containers.DeclarativeContainer):
         token_service=token_service,
     )
     logout = providers.Singleton(Logout, token_service=token_service)
+    authenticate = providers.Singleton(
+        AuthenticateByToken, token_service=token_service, user_service=user_service
+    )
+    get_me = providers.Singleton(GetMe, user_service=user_service)
     create_user = providers.Singleton(
         user_crud_uc.CreateUser, user_service=user_service
     )

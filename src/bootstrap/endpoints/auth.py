@@ -1,16 +1,14 @@
 from fastapi import APIRouter, Depends, Response, status
-from fastapi.security import APIKeyHeader
 from dependency_injector.wiring import inject, Provide
 
 from di import Container
-from src.auth.presentation import get_current_user
+from src.bootstrap.dependencies.auth import get_bearer_token, get_current_user
 from src.auth.schema import TelegramLoginRequest, TokenResponse
+from src.auth.uc.session import GetMe
 from src.auth.uc.telegram import LoginWithTelegram, Logout
 from src.users.models import User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-_authorization_header = APIKeyHeader(name="Authorization", auto_error=False)
 
 
 @router.post(
@@ -34,8 +32,12 @@ async def login_with_telegram(
     operation_id="get_me",
     summary="Текущий пользователь",
 )
-async def get_me(current_user: User = Depends(get_current_user)) -> User:
-    return current_user
+@inject
+async def get_me(
+    current_user: User = Depends(get_current_user),
+    uc: GetMe = Depends(Provide[Container.get_me]),
+) -> User:
+    return await uc(current_user.id)
 
 
 @router.post(
@@ -47,8 +49,8 @@ async def get_me(current_user: User = Depends(get_current_user)) -> User:
 @inject
 async def logout(
     current_user: User = Depends(get_current_user),
-    authorization: str = Depends(_authorization_header),
+    token: str = Depends(get_bearer_token),
     uc: Logout = Depends(Provide[Container.logout]),
 ) -> Response:
-    await uc(authorization.removeprefix("Bearer "))
+    await uc(token)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

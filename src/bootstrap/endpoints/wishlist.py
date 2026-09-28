@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Response, status
 from dependency_injector.wiring import inject, Provide
 
 from di import Container
-from src.auth.presentation import get_current_user
+from src.bootstrap.dependencies.auth import get_current_user
 from src.wishlist.models import (
     Wishlist,
     Favorite,
