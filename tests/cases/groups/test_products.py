@@ -203,3 +203,99 @@ class TestProductsEndpoints(BaseTestGroup, ModelsFixtures):
 
             assert response.status_code == 201
             assert response.json()["sku"] is None
+
+
+class TestProductsValidation(BaseTestGroup, ModelsFixtures):
+    @staticmethod
+    def _payload(category_id, **extra):
+        return {
+            "name": "Кружка",
+            "slug": "mug",
+            "price": "12.50",
+            "stock": 3,
+            "is_active": True,
+            "category_id": category_id,
+            **extra,
+        }
+
+    async def test_create_with_missing_category_is_404(
+        self, admin_auth_headers, fastapi_client
+    ):
+        response = fastapi_client.post(
+            "/api/products/",
+            json=self._payload(99999),
+            headers=admin_auth_headers,
+        )
+
+        assert response.status_code == 404
+
+    @pytest.mark.parametrize(
+        "extra",
+        [
+            {"price": "-1"},
+            {"stock": -1},
+            {"price": "100000000"},
+            {"price": "1.234"},
+            {"name": ""},
+            {"sku": "x" * 51},
+            {"stock": 2**31},
+        ],
+    )
+    async def test_create_rejects_invalid_values(
+        self, extra, sample_category, admin_auth_headers, fastapi_client
+    ):
+        response = fastapi_client.post(
+            "/api/products/",
+            json=self._payload(sample_category.id, **extra),
+            headers=admin_auth_headers,
+        )
+
+        assert response.status_code == 422
+
+    async def test_create_rejects_compare_price_below_price(
+        self, sample_category, admin_auth_headers, fastapi_client
+    ):
+        response = fastapi_client.post(
+            "/api/products/",
+            json=self._payload(
+                sample_category.id, price="10.00", compare_at_price="5.00"
+            ),
+            headers=admin_auth_headers,
+        )
+
+        assert response.status_code == 422
+
+    async def test_update_rejects_negative_stock(
+        self, sample_product, admin_auth_headers, fastapi_client
+    ):
+        response = fastapi_client.patch(
+            f"/api/products/{sample_product.id}",
+            json={"stock": -5},
+            headers=admin_auth_headers,
+        )
+
+        assert response.status_code == 422
+
+    async def test_update_with_missing_category_is_404(
+        self, sample_product, admin_auth_headers, fastapi_client
+    ):
+        response = fastapi_client.patch(
+            f"/api/products/{sample_product.id}",
+            json={"category_id": 99999},
+            headers=admin_auth_headers,
+        )
+
+        assert response.status_code == 404
+
+    async def test_update_price_above_stored_compare_price_is_422(
+        self, product_factory, admin_auth_headers, fastapi_client
+    ):
+        product = product_factory.create(price="10.00", compare_at_price="20.00")
+
+        response = fastapi_client.patch(
+            f"/api/products/{product.id}",
+            json={"price": "30.00"},
+            headers=admin_auth_headers,
+        )
+
+        assert response.status_code == 422

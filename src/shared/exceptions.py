@@ -40,6 +40,23 @@ class CategoryNotEmptyException(DomainException):
         super().__init__(f"Категория {category_id} содержит товары или подкатегории")
 
 
+class InvalidCategoryParentException(DomainException):
+    def __init__(self, category_id: int, parent_id: int):
+        super().__init__(
+            f"Категория {parent_id} не может быть родителем категории {category_id}"
+        )
+
+
+class InvalidProductPriceException(DomainException):
+    def __init__(self):
+        super().__init__("Цена до скидки не может быть меньше цены")
+
+
+class InvalidCartQuantityException(DomainException):
+    def __init__(self, product_id: int, limit: int):
+        super().__init__(f"Количество товара {product_id} в корзине больше {limit}")
+
+
 class EmptyCartException(DomainException):
     def __init__(self):
         super().__init__("Корзина пуста")

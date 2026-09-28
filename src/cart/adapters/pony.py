@@ -2,9 +2,19 @@ from datetime import datetime, timezone
 
 from pony.orm import db_session, select, TransactionIntegrityError
 
-from src.cart.models import CartItem, RemoveCartItemCmd, Cart, AddCartItemCmd
+from src.cart.models import (
+    MAX_QUANTITY,
+    CartItem,
+    RemoveCartItemCmd,
+    Cart,
+    AddCartItemCmd,
+)
 from src.cart.ports import CartRepository
-from src.shared.exceptions import NotFoundException, UniqueViolationException
+from src.shared.exceptions import (
+    InvalidCartQuantityException,
+    NotFoundException,
+    UniqueViolationException,
+)
 from src.shared.orm.models import PonyCartItem, PonyUser, PonyProduct, db
 
 
@@ -42,6 +52,8 @@ class PonyCartRepository(CartRepository):
         item = PonyCartItem.get(user=user, product=product)
 
         if item:
+            if item.quantity + cmd.quantity > MAX_QUANTITY:
+                raise InvalidCartQuantityException(cmd.product_id, MAX_QUANTITY)
             item.quantity += cmd.quantity
             item.updated_at = now
         else:

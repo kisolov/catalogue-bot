@@ -77,3 +77,93 @@ class TestCategoriesEndpoints(BaseTestGroup, ModelsFixtures):
         assert (
             fastapi_client.get(f"/api/products/{sample_product.id}").status_code == 200
         )
+
+
+class TestCategoriesTree(BaseTestGroup, ModelsFixtures):
+    async def test_create_with_missing_parent_is_404(
+        self, admin_auth_headers, fastapi_client
+    ):
+        response = fastapi_client.post(
+            "/api/categories/",
+            json={"name": "Кружки", "slug": "mugs", "parent_id": 99999},
+            headers=admin_auth_headers,
+        )
+
+        assert response.status_code == 404
+
+    async def test_create_with_parent(
+        self, sample_category, admin_auth_headers, fastapi_client
+    ):
+        response = fastapi_client.post(
+            "/api/categories/",
+            json={"name": "Кружки", "slug": "mugs", "parent_id": sample_category.id},
+            headers=admin_auth_headers,
+        )
+
+        assert response.status_code == 201
+        assert response.json()["parent_id"] == sample_category.id
+
+    async def test_category_cannot_be_its_own_parent(
+        self, sample_category, admin_auth_headers, fastapi_client
+    ):
+        response = fastapi_client.patch(
+            f"/api/categories/{sample_category.id}",
+            json={"parent_id": sample_category.id},
+            headers=admin_auth_headers,
+        )
+
+        assert response.status_code == 422
+
+    async def test_category_cannot_move_under_its_descendant(
+        self, admin_auth_headers, fastapi_client
+    ):
+        def create(slug, parent_id=None):
+            return fastapi_client.post(
+                "/api/categories/",
+                json={"name": slug, "slug": slug, "parent_id": parent_id},
+                headers=admin_auth_headers,
+            ).json()["id"]
+
+        root = create("root")
+        child = create("child", root)
+        leaf = create("leaf", child)
+
+        response = fastapi_client.patch(
+            f"/api/categories/{root}",
+            json={"parent_id": leaf},
+            headers=admin_auth_headers,
+        )
+
+        assert response.status_code == 422
+
+    async def test_parent_can_be_cleared(self, admin_auth_headers, fastapi_client):
+        parent = fastapi_client.post(
+            "/api/categories/",
+            json={"name": "p", "slug": "p"},
+            headers=admin_auth_headers,
+        ).json()["id"]
+        child = fastapi_client.post(
+            "/api/categories/",
+            json={"name": "c", "slug": "c", "parent_id": parent},
+            headers=admin_auth_headers,
+        ).json()["id"]
+
+        response = fastapi_client.patch(
+            f"/api/categories/{child}",
+            json={"parent_id": None},
+            headers=admin_auth_headers,
+        )
+
+        assert response.status_code == 200
+        assert response.json()["parent_id"] is None
+
+    async def test_create_rejects_too_long_name(
+        self, admin_auth_headers, fastapi_client
+    ):
+        response = fastapi_client.post(
+            "/api/categories/",
+            json={"name": "x" * 101, "slug": "long"},
+            headers=admin_auth_headers,
+        )
+
+        assert response.status_code == 422

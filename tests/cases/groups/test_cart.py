@@ -94,3 +94,32 @@ class TestCartEndpoints(BaseTestGroup, ModelsFixtures):
         )
         assert get_response.status_code == 200
         assert len(get_response.json()["items"]) == 0
+
+
+class TestCartQuantity(BaseTestGroup, ModelsFixtures):
+    @pytest.mark.parametrize("quantity", [0, -1, 1001])
+    async def test_quantity_out_of_range_is_422(
+        self, quantity, sample_product, auth_headers, fastapi_client
+    ):
+        response = fastapi_client.post(
+            "/api/cart/products",
+            json={"product_id": sample_product.id, "quantity": quantity},
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 422
+
+    async def test_adding_over_limit_to_existing_item_is_422(
+        self, sample_product, auth_headers, fastapi_client
+    ):
+        payload = {"product_id": sample_product.id, "quantity": 600}
+        first = fastapi_client.post(
+            "/api/cart/products", json=payload, headers=auth_headers
+        )
+
+        second = fastapi_client.post(
+            "/api/cart/products", json=payload, headers=auth_headers
+        )
+
+        assert first.status_code == 201
+        assert second.status_code == 422

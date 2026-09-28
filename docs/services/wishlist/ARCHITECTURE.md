@@ -26,5 +26,5 @@
 | Метод | Путь | Use case | Ответ / ошибки |
 |---|---|---|---|
 | GET | `/wishlist/products` | `GetWishlist` | `Wishlist` |
-| POST | `/wishlist/products` | `AddInWishlist` | 201, `Favorite`; 409 если уже в избранном |
+| POST | `/wishlist/products` | `AddInWishlist` | 201, `Favorite`; 404 если товара нет; 409 если уже в избранном |
 | DELETE | `/wishlist/products/{product_id}` | `RemoveFromWishlist` | 204; 404 если не было |

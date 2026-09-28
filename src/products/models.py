@@ -1,7 +1,13 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
-from pydantic import BaseModel, ConfigDict
+from typing import Annotated, Optional
+from pydantic import BaseModel, ConfigDict, Field
+
+Name = Annotated[str, Field(min_length=1, max_length=200)]
+Slug = Annotated[str, Field(min_length=1, max_length=200)]
+Sku = Annotated[str, Field(min_length=1, max_length=50)]
+Money = Annotated[Decimal, Field(ge=0, le=Decimal("99999999.99"), decimal_places=2)]
+Stock = Annotated[int, Field(ge=0, le=2_147_483_647)]
 
 
 class Product(BaseModel):
@@ -25,14 +31,14 @@ class Product(BaseModel):
 
 
 class CreateProductCmd(BaseModel):
-    name: str
-    slug: str
+    name: Name
+    slug: Slug
     description: Optional[str] = None
-    sku: Optional[str] = None
+    sku: Optional[Sku] = None
 
-    price: Decimal
-    compare_at_price: Optional[Decimal] = None
-    stock: int
+    price: Money
+    compare_at_price: Optional[Money] = None
+    stock: Stock
     is_active: bool
 
     category_id: int
@@ -43,12 +49,12 @@ class CreateProductCmd(BaseModel):
 class UpdateProductCmd(BaseModel):
     id: int
 
-    name: Optional[str] = None
-    slug: Optional[str] = None
+    name: Optional[Name] = None
+    slug: Optional[Slug] = None
     description: Optional[str] = None
-    sku: Optional[str] = None
-    price: Optional[Decimal] = None
-    compare_at_price: Optional[Decimal] = None
-    stock: Optional[int] = None
+    sku: Optional[Sku] = None
+    price: Optional[Money] = None
+    compare_at_price: Optional[Money] = None
+    stock: Optional[Stock] = None
     is_active: Optional[bool] = None
     category_id: Optional[int] = None

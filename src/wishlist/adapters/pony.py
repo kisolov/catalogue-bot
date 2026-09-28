@@ -9,7 +9,7 @@ from src.wishlist.models import (
     RemoveFromWishlistCmd,
 )
 from src.wishlist.ports import WishlistRepository
-from src.shared.orm.models import PonyFavorite
+from src.shared.orm.models import PonyFavorite, PonyProduct
 from src.shared.exceptions import NotFoundException, UniqueViolationException
 
 
@@ -25,6 +25,8 @@ class PonyWishlistRepository(WishlistRepository):
 
     @db_session
     def add(self, cmd: AddInWishlistCmd) -> Favorite:
+        if not PonyProduct.exists(id=cmd.product_id):
+            raise NotFoundException(f"Product[id={cmd.product_id}]")
         if PonyFavorite.get(user=cmd.user_id, product=cmd.product_id):
             raise UniqueViolationException(
                 f"Favorite[user_id={cmd.user_id}, product_id={cmd.product_id}]"

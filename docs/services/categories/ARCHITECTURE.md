@@ -27,8 +27,8 @@
 |---|---|---|---|---|
 | GET | `/categories/` | — | `ListCategories` | плоский список всех категорий |
 | GET | `/categories/{id}` | — | `GetCategoryById` | `Category`; 404 |
-| POST | `/categories/` | A | `CreateCategory` | 201; 409 при занятом `slug` |
-| PATCH | `/categories/{id}` | A | `UpdateCategory` | `Category`; 404; 409 |
+| POST | `/categories/` | A | `CreateCategory` | 201; 404 если родителя нет; 409 при занятом `slug` |
+| PATCH | `/categories/{id}` | A | `UpdateCategory` | `Category`; 404 (категория или родитель); 409; 422 если родитель — сама категория или её потомок |
 | DELETE | `/categories/{id}` | A | `DeleteCategory` | 204; 404; 409 если есть товары или подкатегории |
 
 Товары категории: `GET /products/?category_id=` ([products](../products/ARCHITECTURE.md)).

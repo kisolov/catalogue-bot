@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CartItem(BaseModel):
@@ -21,10 +21,13 @@ class Cart(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+MAX_QUANTITY = 1000
+
+
 class AddCartItemCmd(BaseModel):
     user_id: int
     product_id: int
-    quantity: int
+    quantity: int = Field(ge=1, le=MAX_QUANTITY)
 
     model_config = ConfigDict(from_attributes=True)
 

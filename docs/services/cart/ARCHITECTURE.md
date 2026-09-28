@@ -28,7 +28,7 @@
 | Метод | Путь | Use case | Ответ / ошибки |
 |---|---|---|---|
 | GET | `/cart/products` | `GetCart` | `Cart` |
-| POST | `/cart/products` | `AddToCart` | 201, `CartItem`; 404 если товара нет |
+| POST | `/cart/products` | `AddToCart` | 201, `CartItem`; 404 если товара нет; 422 если `quantity` вне 1..1000 или сумма в позиции больше 1000 |
 | DELETE | `/cart/products/{product_id}` | `RemoveFromCart` | 204; 404 если позиции нет |
 | DELETE | `/cart/products` | `ClearCart` | 204 |
 

@@ -89,6 +89,4 @@ endpoint → use case → service → port ← adapter
 
 | Ограничение | Домен |
 |---|---|
-| Ошибки БД (CHECK/FK) на корзине, избранном, создании товара и категории приходят как **409 «Нарушение уникальности…»** — сообщение вводит в заблуждение | [cart](cart/INVARIANTS.md), [wishlist](wishlist/INVARIANTS.md), [products](products/INVARIANTS.md), [categories](categories/INVARIANTS.md) |
-| Необработанные исключения (**500**): товар с несуществующей категорией, отрицательный `stock` в PATCH, категория сама себе родитель | [products](products/INVARIANTS.md), [categories](categories/INVARIANTS.md) |
 | Нет пагинации у списков товаров, категорий, заказов | products, categories, orders |

@@ -68,6 +68,9 @@ erDiagram
 | `UniqueViolationException` | 409 | нарушена уникальность (slug, sku, telegram_id, позиция корзины/избранного) |
 | `ProductInUseException` | 409 | удаление товара, попавшего в заказ |
 | `CategoryNotEmptyException` | 409 | удаление категории с товарами/подкатегориями |
+| `InvalidCategoryParentException` | 422 | родитель категории — она сама или её потомок |
+| `InvalidProductPriceException` | 422 | `compare_at_price` меньше `price` (в том числе после PATCH одного из полей) |
+| `InvalidCartQuantityException` | 422 | сумма количества позиции корзины больше 1000 |
 | `EmptyCartException` | 409 | заказ при пустой корзине |
 | `InsufficientStockException` | 409 | остаток меньше количества в корзине |
 | `ProductUnavailableException` | 409 | товар в заказе неактивен |

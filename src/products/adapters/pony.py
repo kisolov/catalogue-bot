@@ -56,6 +56,13 @@ class PonyProductRepository(ProductRepository):
         if new_sku and new_sku != current_product.sku and PonyProduct.get(sku=new_sku):
             raise UniqueViolationException(f"Product[sku={new_sku}]")
 
+    @staticmethod
+    def _get_category(category_id: int) -> PonyCategory:
+        category = PonyCategory.get(id=category_id)
+        if not category:
+            raise NotFoundException(f"Category[id={category_id}]")
+        return category
+
     @db_session
     def get_by_id(self, product_id: int) -> Product:
         product = PonyProduct.get(id=product_id)
@@ -99,7 +106,7 @@ class PonyProductRepository(ProductRepository):
                 compare_at_price=cmd.compare_at_price,
                 stock=cmd.stock,
                 is_active=cmd.is_active,
-                category=PonyCategory[cmd.category_id],
+                category=self._get_category(cmd.category_id),
                 created_at=datetime.now(timezone.utc),
                 updated_at=datetime.now(timezone.utc),
             )
@@ -126,7 +133,7 @@ class PonyProductRepository(ProductRepository):
         )
 
         if "category_id" in update_data:
-            pony_product.category = PonyCategory[update_data["category_id"]]
+            pony_product.category = self._get_category(update_data["category_id"])
             del update_data["category_id"]
 
         for key, value in update_data.items():

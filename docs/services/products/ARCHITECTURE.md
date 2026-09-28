@@ -29,8 +29,8 @@
 |---|---|---|---|---|
 | GET | `/products/?category_id=` | — | `ListProducts` | список **активных** товаров, фильтр по категории необязателен |
 | GET | `/products/{id}` | — | `GetProductById` | `Product` (в том числе неактивный); 404 |
-| POST | `/products/` | A | `CreateProduct` | 201; 409 при занятых `slug`/`sku` |
-| PATCH | `/products/{id}` | A | `UpdateProduct` | обновлённый `Product`; 404; 409 |
+| POST | `/products/` | A | `CreateProduct` | 201; 404 если категории нет; 409 при занятых `slug`/`sku`; 422 при неверных значениях |
+| PATCH | `/products/{id}` | A | `UpdateProduct` | обновлённый `Product`; 404 (товар или категория); 409; 422 |
 | DELETE | `/products/{id}` | A | `DeleteProduct` | 204; 404; 409 если товар есть в заказах |
 
 Связи: товар принадлежит категории ([categories](../categories/ARCHITECTURE.md)); его остаток

@@ -79,3 +79,14 @@ class TestWishlistEndpoints(BaseTestGroup, ModelsFixtures):
         )
         assert get_response.status_code == 200
         assert len(get_response.json()["products"]) == 0
+
+
+class TestWishlistProductCheck(BaseTestGroup, ModelsFixtures):
+    async def test_add_missing_product_is_404(self, auth_headers, fastapi_client):
+        response = fastapi_client.post(
+            "/api/wishlist/products",
+            json={"product_id": 99999},
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 404

@@ -1,7 +1,10 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Annotated, Optional, List
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+
+Name = Annotated[str, Field(min_length=1, max_length=100)]
+Slug = Annotated[str, Field(min_length=1, max_length=100)]
 
 
 class Category(BaseModel):
@@ -16,8 +19,8 @@ class Category(BaseModel):
 
 
 class CreateCategoryCmd(BaseModel):
-    name: str
-    slug: str
+    name: Name
+    slug: Slug
     parent_id: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -26,8 +29,8 @@ class CreateCategoryCmd(BaseModel):
 class UpdateCategoryCmd(BaseModel):
     id: int
 
-    name: Optional[str] = None
-    slug: Optional[str] = None
+    name: Optional[Name] = None
+    slug: Optional[Slug] = None
     parent_id: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
