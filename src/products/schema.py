@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from src.products.models import CreateProductCmd
+
 
 class UpdateProductRequest(BaseModel):
     name: Optional[str] = None
@@ -14,3 +16,6 @@ class UpdateProductRequest(BaseModel):
     stock: Optional[int] = None
     is_active: Optional[bool] = None
     category_id: Optional[int] = None
+
+
+class CreateProductRequest(CreateProductCmd): ...

@@ -34,3 +34,11 @@ class ListCategories:
 
     async def __call__(self) -> List[Category]:
         return self.service.list()
+
+
+class DeleteCategory:
+    def __init__(self, service: CategoryService):
+        self.service = service
+
+    async def __call__(self, category_id: int) -> None:
+        self.service.delete(category_id)

@@ -71,6 +71,9 @@ class Container(containers.DeclarativeContainer):
     update_category = providers.Singleton(
         category_crud_uc.UpdateCategory, service=category_service
     )
+    delete_category = providers.Singleton(
+        category_crud_uc.DeleteCategory, service=category_service
+    )
     get_category_by_id = providers.Singleton(
         category_crud_uc.GetCategoryById, service=category_service
     )
@@ -83,6 +86,9 @@ class Container(containers.DeclarativeContainer):
     )
     update_product = providers.Singleton(
         product_crud_uc.UpdateProduct, service=product_service
+    )
+    delete_product = providers.Singleton(
+        product_crud_uc.DeleteProduct, service=product_service
     )
     get_product_by_id = providers.Singleton(
         product_crud_uc.GetProductById, service=product_service

@@ -32,5 +32,13 @@ class ListProducts:
     def __init__(self, service: ProductService):
         self.service = service
 
-    async def __call__(self) -> List[Product]:
-        return self.service.list()
+    async def __call__(self, category_id: int | None = None) -> List[Product]:
+        return self.service.list(category_id=category_id)
+
+
+class DeleteProduct:
+    def __init__(self, service: ProductService):
+        self.service = service
+
+    async def __call__(self, product_id: int) -> None:
+        self.service.delete(product_id)

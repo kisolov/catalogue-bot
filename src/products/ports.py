@@ -23,3 +23,6 @@ class ProductRepository(ABC):
 
     @abstractmethod
     def update(self, cmd: UpdateProductCmd) -> Product: ...
+
+    @abstractmethod
+    def delete(self, product_id: int) -> None: ...

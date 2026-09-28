@@ -15,11 +15,12 @@ router = APIRouter(prefix="/users", tags=["users"])
     response_model=User,
     status_code=status.HTTP_201_CREATED,
     operation_id="create_user",
-    summary="Создать нового пользователя",
+    summary="Создать нового пользователя (для админов)",
 )
 @inject
 async def create_user(
     request: CreateUserRequest,
+    current_admin: User = Depends(get_current_admin),
     uc: CreateUser = Depends(Provide[Container.create_user]),
 ) -> User:
     cmd = CreateUserCmd(telegram_id=request.telegram_id, role=request.role)

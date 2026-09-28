@@ -19,3 +19,6 @@ class CategoryRepository(ABC):
 
     @abstractmethod
     def update(self, cmd: UpdateCategoryCmd) -> Category: ...
+
+    @abstractmethod
+    def delete(self, category_id: int) -> None: ...

@@ -22,3 +22,6 @@ class ProductService:
 
     def update(self, cmd: UpdateProductCmd) -> Product:
         return self.repo.update(cmd)
+
+    def delete(self, product_id: int) -> None:
+        self.repo.delete(product_id)

@@ -17,7 +17,13 @@ from .utils import (
     http_exception_wrapper,
 )
 
-from src.shared.exceptions import NotFoundException, MappingException
+from src.shared.exceptions import (
+    NotFoundException,
+    MappingException,
+    UniqueViolationException,
+    ProductInUseException,
+    CategoryNotEmptyException,
+)
 
 
 class ServerFactory:
@@ -39,6 +45,9 @@ class ServerFactory:
                 RequestValidationError: validation_exception_handler,
                 NotFoundException: http_exception_wrapper(404),
                 MappingException: http_exception_wrapper(400),
+                UniqueViolationException: http_exception_wrapper(409),
+                ProductInUseException: http_exception_wrapper(409),
+                CategoryNotEmptyException: http_exception_wrapper(409),
             },
             root_path="/api",
         )

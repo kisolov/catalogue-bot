@@ -1,7 +1,11 @@
 from datetime import datetime, timezone
-from pony.orm import db_session, TransactionIntegrityError, select
+from pony.orm import db_session, TransactionIntegrityError, IntegrityError, select, flush
 
-from src.shared.exceptions import NotFoundException, UniqueViolationException
+from src.shared.exceptions import (
+    NotFoundException,
+    UniqueViolationException,
+    ProductInUseException,
+)
 from src.shared.orm.models import PonyProduct, PonyCategory, db
 from src.products.models import Product, CreateProductCmd, UpdateProductCmd
 from src.products.ports import ProductRepository
@@ -37,9 +41,13 @@ class PonyProductRepository(ProductRepository):
     def _check_update_uniqueness(
         current_product: PonyProduct, new_slug: str, new_sku: str | None
     ) -> None:
-        if new_slug != current_product.slug and PonyProduct.get(slug=new_slug):
+        if (
+            new_slug
+            and new_slug != current_product.slug
+            and PonyProduct.get(slug=new_slug)
+        ):
             raise UniqueViolationException(f"Product[slug={new_slug}]")
-        if new_sku != current_product.sku and new_sku and PonyProduct.get(sku=new_sku):
+        if new_sku and new_sku != current_product.sku and PonyProduct.get(sku=new_sku):
             raise UniqueViolationException(f"Product[sku={new_sku}]")
 
     @db_session
@@ -121,3 +129,14 @@ class PonyProductRepository(ProductRepository):
         pony_product.updated_at = datetime.now(timezone.utc)
 
         return self._to_domain(pony_product)
+
+    @db_session
+    def delete(self, product_id: int) -> None:
+        pony_product = PonyProduct.get(id=product_id)
+        if not pony_product:
+            raise NotFoundException(f"Product[id={product_id}]")
+        try:
+            pony_product.delete()
+            flush()
+        except IntegrityError:
+            raise ProductInUseException(product_id)

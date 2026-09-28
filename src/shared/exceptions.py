@@ -27,3 +27,13 @@ class TokenExpiredException(TokenException):
 class InvalidTokenException(TokenException):
     def __init__(self):
         super().__init__("Invalid token")
+
+
+class ProductInUseException(DomainException):
+    def __init__(self, product_id: int):
+        super().__init__(f"Товар {product_id} используется в заказах")
+
+
+class CategoryNotEmptyException(DomainException):
+    def __init__(self, category_id: int):
+        super().__init__(f"Категория {category_id} содержит товары или подкатегории")

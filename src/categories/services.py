@@ -21,3 +21,6 @@ class CategoryService:
 
     def update(self, cmd: UpdateCategoryCmd) -> Category:
         return self.repo.update(cmd)
+
+    def delete(self, category_id: int) -> None:
+        self.repo.delete(category_id)

@@ -1,7 +1,11 @@
 from datetime import datetime, timezone
 from pony.orm import db_session, select, TransactionIntegrityError, flush
 
-from src.shared.exceptions import NotFoundException, UniqueViolationException
+from src.shared.exceptions import (
+    NotFoundException,
+    UniqueViolationException,
+    CategoryNotEmptyException,
+)
 from src.shared.orm.models import PonyCategory
 from src.categories.models import Category, CreateCategoryCmd, UpdateCategoryCmd
 from src.categories.ports import CategoryRepository
@@ -76,3 +80,12 @@ class PonyCategoryRepository(CategoryRepository):
         pony_category.updated_at = datetime.now(timezone.utc)
 
         return Category.model_validate(pony_category)
+
+    @db_session
+    def delete(self, category_id: int) -> None:
+        pony_category = PonyCategory.get(id=category_id)
+        if not pony_category:
+            raise NotFoundException(f"Category[id={category_id}]")
+        if pony_category.products.count() or pony_category.children.count():
+            raise CategoryNotEmptyException(category_id)
+        pony_category.delete()
