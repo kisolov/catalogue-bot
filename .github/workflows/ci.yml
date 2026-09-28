@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: flake8 src/ di.py main.py settings.py
+      - run: black --check src/ tests/ di.py main.py settings.py
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: catalogue_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=5s --health-timeout=5s --health-retries=10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s --health-timeout=3s --health-retries=10
+    env:
+      ENVIRONMENT: test
+      DB_PROVIDER: postgres
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_USER: test
+      DB_PASSWORD: test
+      DB_NAME: catalogue_test
+      DB_SCHEMA: public
+      REDIS_HOST: localhost
+      JWT_SECRET_KEY: ci-secret
+      SERVER_ALLOWED_ORIGINS: '["*"]'
+      SERVER_PORT: "8000"
+      SERVER_HOST: 127.0.0.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f docker/python/Dockerfile -t catalogue-backend .
