@@ -6,6 +6,7 @@ from pony.orm import db_session, select, flush, desc
 
 from src.orders.models import Order, OrderItem, OrderStatus
 from src.orders.ports import OrderRepository
+from src.shared.pagination import Pagination
 from src.shared.orm.models import (
     PonyCartItem,
     PonyOrder,
@@ -51,10 +52,11 @@ class PonyOrderRepository(OrderRepository):
         return self._to_domain(order)
 
     @db_session
-    def list(self, user_id: int) -> List[Order]:
-        orders = select(o for o in PonyOrder if o.user.id == user_id).order_by(
+    def list(self, user_id: int, page: Pagination | None = None) -> List[Order]:
+        query = select(o for o in PonyOrder if o.user.id == user_id).order_by(
             desc(PonyOrder.id)
         )
+        orders = query.limit(page.limit, page.offset) if page else query[:]
         return [self._to_domain(o) for o in orders]
 
     @db_session

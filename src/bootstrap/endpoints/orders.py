@@ -5,6 +5,7 @@ from dependency_injector.wiring import inject, Provide
 
 from di import Container
 from src.bootstrap.dependencies.auth import get_current_user, get_current_admin
+from src.bootstrap.dependencies.pagination import get_pagination
 from src.orders.models import Order
 from src.orders.schema import UpdateOrderStatusRequest
 from src.orders.uc.crud import (
@@ -14,6 +15,7 @@ from src.orders.uc.crud import (
     UpdateOrderStatus,
     CancelOrder,
 )
+from src.shared.pagination import Pagination
 from src.users.models import User, UserRole
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -37,14 +39,15 @@ async def create_order(
 @router.get(
     "/",
     operation_id="list_my_orders",
-    summary="Получить мои заказы",
+    summary="Получить мои заказы (limit, offset)",
 )
 @inject
 async def list_my_orders(
     current_user: User = Depends(get_current_user),
+    page: Pagination = Depends(get_pagination),
     uc: ListOrdersByUser = Depends(Provide[Container.list_orders_by_user]),
 ) -> List[Order]:
-    return await uc(current_user.id)
+    return await uc(current_user.id, page=page)
 
 
 @router.get(

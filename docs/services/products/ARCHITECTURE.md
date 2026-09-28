@@ -27,7 +27,7 @@
 
 | Метод | Путь | Авт. | Use case | Ответ / ошибки |
 |---|---|---|---|---|
-| GET | `/products/?category_id=` | — | `ListProducts` | список **активных** товаров, фильтр по категории необязателен |
+| GET | `/products/?category_id=&limit=&offset=` | — | `ListProducts` | список **активных** товаров по возрастанию `id`, фильтр по категории необязателен; `limit`/`offset` ([пагинация](../shared/ARCHITECTURE.md#пагинация)) |
 | GET | `/products/{id}` | — | `GetProductById` | `Product` (в том числе неактивный); 404 |
 | POST | `/products/` | A | `CreateProduct` | 201; 404 если категории нет; 409 при занятых `slug`/`sku`; 422 при неверных значениях |
 | PATCH | `/products/{id}` | A | `UpdateProduct` | обновлённый `Product`; 404 (товар или категория); 409; 422 |

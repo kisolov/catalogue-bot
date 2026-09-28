@@ -15,6 +15,7 @@ from src.shared.exceptions import (
 from src.shared.orm.models import PonyProduct, PonyCategory, PonyOrderItem, db
 from src.products.models import Product, CreateProductCmd, UpdateProductCmd
 from src.products.ports import ProductRepository
+from src.shared.pagination import Pagination
 
 
 class PonyProductRepository(ProductRepository):
@@ -82,6 +83,7 @@ class PonyProductRepository(ProductRepository):
         self,
         category_id: int | None = None,
         is_active: bool | None = True,
+        page: Pagination | None = None,
     ) -> list[Product]:
         query = select(p for p in PonyProduct)
         if category_id is not None:
@@ -89,7 +91,8 @@ class PonyProductRepository(ProductRepository):
         if is_active is not None:
             query = query.filter(lambda p: p.is_active == is_active)
 
-        products = query[:]
+        query = query.order_by(PonyProduct.id)
+        products = query.limit(page.limit, page.offset) if page else query[:]
         return [self._to_domain(product) for product in products]
 
     @db_session

@@ -5,6 +5,7 @@ from dependency_injector.wiring import inject, Provide
 
 from di import Container
 from src.bootstrap.dependencies.auth import get_current_admin
+from src.bootstrap.dependencies.pagination import get_pagination
 from src.categories.models import Category, CreateCategoryCmd, UpdateCategoryCmd
 from src.categories.schema import CreateCategoryRequest, UpdateCategoryRequest
 from src.categories.uc.crud import (
@@ -14,6 +15,7 @@ from src.categories.uc.crud import (
     UpdateCategory,
     DeleteCategory,
 )
+from src.shared.pagination import Pagination
 from src.users.models import User
 
 router = APIRouter(prefix="/categories", tags=["categories"])
@@ -22,13 +24,14 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 @router.get(
     "/",
     operation_id="list_categories",
-    summary="Получить список категорий",
+    summary="Получить список категорий (limit, offset)",
 )
 @inject
 async def list_categories(
+    page: Pagination = Depends(get_pagination),
     uc: ListCategories = Depends(Provide[Container.list_categories]),
 ) -> List[Category]:
-    return await uc()
+    return await uc(page=page)
 
 
 @router.get(

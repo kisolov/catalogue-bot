@@ -13,6 +13,12 @@
 (нет обязательных — падение при старте), поднимает ресурсы контейнера, запускает сервер и
 в `finally` освобождает ресурсы.
 
+## Пагинация
+
+Зависимость [`get_pagination`](../../../src/bootstrap/dependencies/pagination.py) собирает
+`limit` и `offset` из query в [`Pagination`](../../../src/shared/pagination.py); значения вне
+границ дают 422 на входе, до use case.
+
 ## Авторизация
 
 Зависимости [`bootstrap/dependencies/auth.py`](../../../src/bootstrap/dependencies/auth.py):

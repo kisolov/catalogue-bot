@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from src.categories.models import Category, CreateCategoryCmd, UpdateCategoryCmd
+from src.shared.pagination import Pagination
 
 
 class CategoryRepository(ABC):
@@ -12,7 +13,9 @@ class CategoryRepository(ABC):
     def get_by_slug(self, slug: str) -> Category: ...
 
     @abstractmethod
-    def list(self, parent_id: Optional[int] = None) -> List[Category]: ...
+    def list(
+        self, parent_id: Optional[int] = None, page: Optional[Pagination] = None
+    ) -> List[Category]: ...
 
     @abstractmethod
     def create(self, cmd: CreateCategoryCmd) -> Category: ...

@@ -3,6 +3,7 @@ from typing import List
 from src.categories.models import Category, CreateCategoryCmd, UpdateCategoryCmd
 from src.categories.services import CategoryService
 from src.shared.logger import logger
+from src.shared.pagination import Pagination
 
 
 class CreateCategory:
@@ -37,8 +38,8 @@ class ListCategories:
     def __init__(self, service: CategoryService):
         self.service = service
 
-    async def __call__(self) -> List[Category]:
-        return self.service.list()
+    async def __call__(self, page: Pagination | None = None) -> List[Category]:
+        return self.service.list(page=page)
 
 
 class DeleteCategory:

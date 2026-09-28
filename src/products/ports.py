@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 
 from src.products.models import Product, CreateProductCmd, UpdateProductCmd
+from src.shared.pagination import Pagination
 
 
 class ProductRepository(ABC):
@@ -16,6 +17,7 @@ class ProductRepository(ABC):
         self,
         category_id: Optional[int] = None,
         is_active: Optional[bool] = True,
+        page: Optional[Pagination] = None,
     ) -> List[Product]: ...
 
     @abstractmethod

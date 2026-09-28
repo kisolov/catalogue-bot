@@ -1,3 +1,4 @@
+import pytest
 from decimal import Decimal
 
 from src.cart.models import AddCartItemCmd
@@ -246,3 +247,23 @@ class TestOrdersEndpoints(BaseTestGroup, ModelsFixtures):
         )
 
         assert response.status_code == 409
+
+
+class TestOrdersPagination(BaseTestGroup, ModelsFixtures):
+    async def test_pages_are_newest_first(
+        self, sample_user, order_factory, auth_headers, fastapi_client
+    ):
+        ids = [order_factory.create(user_id=sample_user.id).id for _ in range(3)]
+
+        first = fastapi_client.get("/api/orders/?limit=2", headers=auth_headers).json()
+        second = fastapi_client.get(
+            "/api/orders/?limit=2&offset=2", headers=auth_headers
+        ).json()
+
+        assert [o["id"] for o in first + second] == list(reversed(ids))
+
+    @pytest.mark.parametrize("query", ["limit=0", "limit=101", "offset=-1"])
+    async def test_invalid_paging_is_422(self, query, auth_headers, fastapi_client):
+        response = fastapi_client.get(f"/api/orders/?{query}", headers=auth_headers)
+
+        assert response.status_code == 422

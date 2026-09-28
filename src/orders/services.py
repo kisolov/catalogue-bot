@@ -8,6 +8,7 @@ from src.orders.models import (
 )
 from src.orders.ports import OrderRepository
 from src.shared.exceptions import InvalidOrderTransitionException, NotFoundException
+from src.shared.pagination import Pagination
 
 
 class OrderService:
@@ -24,8 +25,8 @@ class OrderService:
             raise NotFoundException(f"Order[id={order_id}]")
         return order
 
-    def list_by_user(self, user_id: int) -> List[Order]:
-        return self.repo.list(user_id)
+    def list_by_user(self, user_id: int, page: Pagination | None = None) -> List[Order]:
+        return self.repo.list(user_id, page=page)
 
     def create(self, cmd: CreateOrderCmd) -> Order:
         order = Order(

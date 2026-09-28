@@ -5,6 +5,7 @@ from dependency_injector.wiring import inject, Provide
 
 from di import Container
 from src.bootstrap.dependencies.auth import get_current_admin
+from src.bootstrap.dependencies.pagination import get_pagination
 from src.products.models import Product, UpdateProductCmd, CreateProductCmd
 from src.products.schema import UpdateProductRequest, CreateProductRequest
 from src.products.uc.crud import (
@@ -14,6 +15,7 @@ from src.products.uc.crud import (
     CreateProduct,
     DeleteProduct,
 )
+from src.shared.pagination import Pagination
 from src.users.models import User
 
 router = APIRouter(prefix="/products", tags=["products"])
@@ -22,14 +24,15 @@ router = APIRouter(prefix="/products", tags=["products"])
 @router.get(
     "/",
     operation_id="list_products",
-    summary="Получить список всех товаров",
+    summary="Получить список активных товаров (limit, offset)",
 )
 @inject
 async def list_products(
     category_id: Optional[int] = None,
+    page: Pagination = Depends(get_pagination),
     uc: ListProducts = Depends(Provide[Container.list_products]),
 ) -> List[Product]:
-    return await uc(category_id=category_id)
+    return await uc(category_id=category_id, page=page)
 
 
 @router.get(

@@ -10,6 +10,7 @@ from src.shared.exceptions import (
 from src.shared.orm.models import PonyCategory
 from src.categories.models import Category, CreateCategoryCmd, UpdateCategoryCmd
 from src.categories.ports import CategoryRepository
+from src.shared.pagination import Pagination
 
 
 class PonyCategoryRepository(CategoryRepository):
@@ -58,11 +59,14 @@ class PonyCategoryRepository(CategoryRepository):
         return self._to_domain(category)
 
     @db_session
-    def list(self, parent_id: int | None = None) -> list[Category]:
+    def list(
+        self, parent_id: int | None = None, page: Pagination | None = None
+    ) -> list[Category]:
         query = select(c for c in PonyCategory)
         if parent_id is not None:
             query = query.filter(lambda c: c.parent.id == parent_id)
-        categories = query[:]
+        query = query.order_by(PonyCategory.id)
+        categories = query.limit(page.limit, page.offset) if page else query[:]
         return [self._to_domain(c) for c in categories]
 
     @db_session

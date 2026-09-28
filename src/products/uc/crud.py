@@ -3,6 +3,7 @@ from typing import List
 from src.products.models import Product, CreateProductCmd, UpdateProductCmd
 from src.products.services import ProductService
 from src.shared.logger import logger
+from src.shared.pagination import Pagination
 
 
 class CreateProduct:
@@ -37,8 +38,10 @@ class ListProducts:
     def __init__(self, service: ProductService):
         self.service = service
 
-    async def __call__(self, category_id: int | None = None) -> List[Product]:
-        return self.service.list(category_id=category_id)
+    async def __call__(
+        self, category_id: int | None = None, page: Pagination | None = None
+    ) -> List[Product]:
+        return self.service.list(category_id=category_id, page=page)
 
 
 class DeleteProduct:

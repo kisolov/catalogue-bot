@@ -299,3 +299,35 @@ class TestProductsValidation(BaseTestGroup, ModelsFixtures):
         )
 
         assert response.status_code == 422
+
+
+class TestProductsPagination(BaseTestGroup, ModelsFixtures):
+    async def test_pages_are_ordered_and_do_not_overlap(
+        self, product_factory, fastapi_client
+    ):
+        created = [product_factory.create().id for _ in range(5)]
+
+        first = fastapi_client.get("/api/products/?limit=2&offset=0").json()
+        second = fastapi_client.get("/api/products/?limit=2&offset=2").json()
+        rest = fastapi_client.get("/api/products/?limit=2&offset=4").json()
+
+        ids = [p["id"] for p in first + second + rest]
+        assert ids == created
+        assert len(first) == len(second) == 2
+        assert len(rest) == 1
+
+    async def test_offset_past_the_end_is_empty(self, sample_product, fastapi_client):
+        response = fastapi_client.get("/api/products/?offset=1000")
+
+        assert response.status_code == 200
+        assert response.json() == []
+
+    async def test_default_limit_is_applied(self, product_factory, fastapi_client):
+        for _ in range(51):
+            product_factory.create()
+
+        assert len(fastapi_client.get("/api/products/").json()) == 50
+
+    @pytest.mark.parametrize("query", ["limit=0", "limit=101", "offset=-1", "limit=x"])
+    async def test_invalid_paging_is_422(self, query, fastapi_client):
+        assert fastapi_client.get(f"/api/products/?{query}").status_code == 422

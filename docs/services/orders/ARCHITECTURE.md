@@ -32,7 +32,7 @@
 | Метод | Путь | Авт. | Use case | Ответ / ошибки |
 |---|---|---|---|---|
 | POST | `/orders/` | U | `CreateOrderFromCart` | 201, `Order`; 409 пустая корзина / товар недоступен / не хватает остатка |
-| GET | `/orders/` | U | `ListOrdersByUser` | свои заказы, новые первыми, без пагинации |
+| GET | `/orders/` | U | `ListOrdersByUser` | свои заказы, новые первыми; `limit`/`offset` ([пагинация](../shared/ARCHITECTURE.md#пагинация)) |
 | GET | `/orders/{id}` | U | `GetOrderById` | свой заказ; админ — любой; чужой — 404 |
 | POST | `/orders/{id}/cancel` | U | `CancelOrder` | `Order`; 404 (в т.ч. чужой); 409 если статус не `new` |
 | PATCH | `/orders/{id}/status` | A | `UpdateOrderStatus` | `Order`; 404; 409 если переход недопустим; 422 при неизвестном статусе |

@@ -57,6 +57,13 @@ erDiagram
 Обязательны без значения по умолчанию: `DB_PASSWORD`, `REDIS_PASSWORD` (compose), `JWT_SECRET_KEY`, `TELEGRAM_BOT_TOKEN`, `SERVER_ALLOWED_ORIGINS`
 (плюс `DB_USER`, `DB_NAME`, `DB_SCHEMA`, `DB_PROVIDER`, `SERVER_*` в compose задаются сами). Образец — [`.env.example`](../../../.env.example).
 
+## Пагинация
+
+[`Pagination`](../../../src/shared/pagination.py): `limit` 1..100 (по умолчанию 50), `offset` ≥ 0.
+Её принимают списки товаров, категорий и заказов (`page` в use case, сервисе, порте и адаптере);
+без `page` адаптер вернёт всё. Порядок стабильный: товары и категории по возрастанию `id`,
+заказы по убыванию. Ответ остаётся массивом, общее число не возвращается.
+
 ## Исключения
 
 [`shared/exceptions.py`](../../../src/shared/exceptions.py): все бизнес-ошибки — `DomainException`.

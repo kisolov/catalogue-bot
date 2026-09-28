@@ -3,6 +3,7 @@ from typing import List
 from src.orders.models import Order, CreateOrderCmd, OrderStatus
 from src.orders.services import OrderService
 from src.shared.logger import logger
+from src.shared.pagination import Pagination
 
 
 class CreateOrder:
@@ -44,8 +45,10 @@ class ListOrdersByUser:
     def __init__(self, service: OrderService):
         self.service = service
 
-    async def __call__(self, user_id: int) -> List[Order]:
-        return self.service.list_by_user(user_id)
+    async def __call__(
+        self, user_id: int, page: Pagination | None = None
+    ) -> List[Order]:
+        return self.service.list_by_user(user_id, page=page)
 
 
 class UpdateOrderStatus:

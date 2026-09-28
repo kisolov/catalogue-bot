@@ -1,3 +1,5 @@
+import pytest
+
 from tests.cases.base import BaseTestGroup
 from tests.fixtures.models import ModelsFixtures
 
@@ -167,3 +169,19 @@ class TestCategoriesTree(BaseTestGroup, ModelsFixtures):
         )
 
         assert response.status_code == 422
+
+
+class TestCategoriesPagination(BaseTestGroup, ModelsFixtures):
+    async def test_pages_are_ordered_and_do_not_overlap(
+        self, category_factory, fastapi_client
+    ):
+        created = [category_factory.create().id for _ in range(3)]
+
+        first = fastapi_client.get("/api/categories/?limit=2").json()
+        second = fastapi_client.get("/api/categories/?limit=2&offset=2").json()
+
+        assert [c["id"] for c in first + second] == created
+
+    @pytest.mark.parametrize("query", ["limit=0", "limit=101", "offset=-1"])
+    async def test_invalid_paging_is_422(self, query, fastapi_client):
+        assert fastapi_client.get(f"/api/categories/?{query}").status_code == 422

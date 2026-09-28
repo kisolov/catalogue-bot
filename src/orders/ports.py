@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
 from src.orders.models import Order, OrderStatus
+from src.shared.pagination import Pagination
 
 
 class OrderRepository(ABC):
@@ -10,7 +11,7 @@ class OrderRepository(ABC):
     def get_by_id(self, order_id: int) -> Order: ...
 
     @abstractmethod
-    def list(self, user_id: int) -> List[Order]: ...
+    def list(self, user_id: int, page: Optional[Pagination] = None) -> List[Order]: ...
 
     @abstractmethod
     def create(self, order: Order) -> Order: ...

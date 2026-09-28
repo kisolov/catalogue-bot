@@ -25,7 +25,7 @@
 
 | Метод | Путь | Авт. | Use case | Ответ / ошибки |
 |---|---|---|---|---|
-| GET | `/categories/` | — | `ListCategories` | плоский список всех категорий |
+| GET | `/categories/` | — | `ListCategories` | плоский список категорий по возрастанию `id`; `limit`/`offset` ([пагинация](../shared/ARCHITECTURE.md#пагинация)); у каждой в `children` вложено всё поддерево |
 | GET | `/categories/{id}` | — | `GetCategoryById` | `Category`; 404 |
 | POST | `/categories/` | A | `CreateCategory` | 201; 404 если родителя нет; 409 при занятом `slug` |
 | PATCH | `/categories/{id}` | A | `UpdateCategory` | `Category`; 404 (категория или родитель); 409; 422 если родитель — сама категория или её потомок |

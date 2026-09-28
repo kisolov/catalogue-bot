@@ -1,6 +1,7 @@
 from src.products.models import Product, CreateProductCmd, UpdateProductCmd
 from src.products.ports import ProductRepository
 from src.shared.exceptions import InvalidProductPriceException
+from src.shared.pagination import Pagination
 
 
 class ProductService:
@@ -14,9 +15,12 @@ class ProductService:
         return self.repo.get_by_slug(slug)
 
     def list(
-        self, category_id: int | None = None, is_active: bool | None = True
+        self,
+        category_id: int | None = None,
+        is_active: bool | None = True,
+        page: Pagination | None = None,
     ) -> list[Product]:
-        return self.repo.list(category_id=category_id, is_active=is_active)
+        return self.repo.list(category_id=category_id, is_active=is_active, page=page)
 
     @staticmethod
     def _check_prices(price, compare_at_price) -> None:
