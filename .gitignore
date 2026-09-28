@@ -1,7 +1,7 @@
 /.env
 /.idea
 /venv
-/logs/*.log
+/logs/*
 /tests/.env.test
 /.venv
 __pycache__/
