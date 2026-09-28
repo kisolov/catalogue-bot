@@ -70,6 +70,7 @@ AUTH="Authorization: Bearer $TOKEN"
 # 2. Каталог (публично)
 curl -s $API/categories/
 curl -s "$API/products/?category_id=1"
+curl -s "$API/products/?limit=20&offset=40"   # постранично: limit 1..100 (50 по умолчанию), offset >= 0
 
 # 3. Корзина и заказ
 curl -s -X POST $API/cart/products -H "$AUTH" -H 'Content-Type: application/json' \
