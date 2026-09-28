@@ -48,7 +48,7 @@ jobs:
       DB_SCHEMA: public
       REDIS_HOST: localhost
       JWT_SECRET_KEY: ci-secret
-      SERVER_ALLOWED_ORIGINS: '["*"]'
+      SERVER_ALLOWED_ORIGINS: '["http://localhost"]'
       SERVER_PORT: "8000"
       SERVER_HOST: 127.0.0.1
     steps:

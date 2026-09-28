@@ -8,7 +8,7 @@
 
 [`ServerFactory`](../../../src/bootstrap/server_factory.py) создаёт FastAPI (`root_path=/api`),
 подключает роутеры, CORS, [`LoggingMiddleware`](../../../src/bootstrap/utils/logging_middleware.py)
-(логирует запрос и ответ, тело до 4096 байт) и uvicorn (`proxy_headers=True`,
+(логирует запрос и ответ, тело до 4096 байт; `Authorization`, `Cookie` и поля `token`/`init_data`/`hash`/`password` маскируются `***`, не-JSON тело не пишется) и uvicorn (`proxy_headers=True`,
 `forwarded_allow_ips` из настроек). Точка входа — [`main.py`](../../../main.py): читает настройки
 (нет обязательных — падение при старте), поднимает ресурсы контейнера, запускает сервер и
 в `finally` освобождает ресурсы.
@@ -48,17 +48,16 @@
 ```json
 {"detail": {"error": "ValidationError", "message": "Ошибка валидации входных данных",
             "request": {"method": "...", "url": "..."},
-            "errors": [{"field": "...", "path": "body.field", "type": "missing", "message": "...", "input": "..."}]}}
+            "errors": [{"field": "...", "path": "body.field", "type": "missing", "message": "..."}]}}
 ```
 
-Как есть: обработчик 422 вызывает `logger.error(type(exc), exc, exc_info=True)` — сообщением
-передан класс, а не строка, поэтому логгер выдаёт `TypeError: not all arguments converted`
-(в тестах он всплывает, в проде пишется «Logging error» в stderr; ответ 422 клиенту уходит).
+Значения, присланные клиентом, в ответ не возвращаются, `url` — только путь. Отказ пишется
+одной строкой `WARNING` («Validation rejection», путь и число ошибок).
 
 ## Middleware
 
 | Middleware | Роль |
 |---|---|
-| CORS | `allow_origins` из `SERVER_ALLOWED_ORIGINS`, credentials разрешены |
+| CORS | `allow_origins` из `SERVER_ALLOWED_ORIGINS` (`*` запрещён валидатором настроек), credentials выключены (токен в `Authorization`, cookie нет), методы GET/POST/PUT/PATCH/DELETE, заголовки `Authorization` и `Content-Type` |
 | [`LoggingMiddleware`](../../../src/bootstrap/utils/logging_middleware.py) | лог запросов/ответов |
 | [`WebhookBypassMiddleware`](../../../src/bootstrap/utils/webhook_bypass_middleware.py) | для пути `/webhook` добавляет `Access-Control-Allow-Origin: *`; маршрута `/webhook` в проекте нет, остался от исходного кода |

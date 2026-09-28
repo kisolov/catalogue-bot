@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -9,10 +9,25 @@ class ServerSettings(BaseSettings):
     port: int
     host: str
     forwarded_allow_ips: str = "127.0.0.1"
+    docs_enabled: bool = True
 
     model_config = SettingsConfigDict(
         env_prefix="SERVER_", extra="ignore", env_file=".env"
     )
+
+    @field_validator("allowed_origins")
+    @classmethod
+    def _no_wildcard_origin(cls, origins: List[str]) -> List[str]:
+        if "*" in origins:
+            raise ValueError("укажите конкретные origin'ы вместо '*'")
+        return origins
+
+    @field_validator("forwarded_allow_ips")
+    @classmethod
+    def _no_wildcard_proxy(cls, value: str) -> str:
+        if value.strip() == "*":
+            raise ValueError("укажите адрес или подсеть прокси вместо '*'")
+        return value
 
 
 class DatabaseSettings(BaseSettings):
@@ -49,7 +64,7 @@ class RedisSettings(BaseSettings):
 class JWTSettings(BaseSettings):
     secret_key: str
     algorithm: str = "HS256"
-    access_token_expires_minutes: int = 60 * 24
+    access_token_expires_minutes: int = Field(default=60 * 12, gt=0, le=60 * 24 * 7)
 
     model_config = SettingsConfigDict(
         env_prefix="JWT_", extra="ignore", env_file=".env"

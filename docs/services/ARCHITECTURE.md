@@ -84,7 +84,7 @@ endpoint → use case → service → port ← adapter
 
 ## Известные ограничения (как есть)
 
-Найдены при проверке граничных случаев запуском. Код не менялся; подробности — в `INVARIANTS.md`
+Найдены при проверке граничных случаев запуском; подробности — в `INVARIANTS.md`
 доменов.
 
 | Ограничение | Домен |
@@ -92,4 +92,3 @@ endpoint → use case → service → port ← adapter
 | Ошибки БД (CHECK/FK) на корзине, избранном, создании товара и категории приходят как **409 «Нарушение уникальности…»** — сообщение вводит в заблуждение | [cart](cart/INVARIANTS.md), [wishlist](wishlist/INVARIANTS.md), [products](products/INVARIANTS.md), [categories](categories/INVARIANTS.md) |
 | Необработанные исключения (**500**): товар с несуществующей категорией, отрицательный `stock` в PATCH, категория сама себе родитель | [products](products/INVARIANTS.md), [categories](categories/INVARIANTS.md) |
 | Нет пагинации у списков товаров, категорий, заказов | products, categories, orders |
-| Обработчик 422 вызывает `logger.error` с неверными аргументами | [bootstrap](bootstrap/ARCHITECTURE.md) |

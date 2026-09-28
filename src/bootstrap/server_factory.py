@@ -68,6 +68,9 @@ class ServerFactory:
                 PermissionDeniedException: http_exception_wrapper(403),
             },
             root_path="/api",
+            docs_url="/docs" if self.settings.docs_enabled else None,
+            redoc_url=None,
+            openapi_url="/openapi.json" if self.settings.docs_enabled else None,
         )
 
         app.include_router(main_router)
@@ -75,9 +78,9 @@ class ServerFactory:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=self.settings.allowed_origins,
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
+            allow_credentials=False,  # токен идёт в Authorization, cookie нет
+            allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+            allow_headers=["Authorization", "Content-Type"],
         )
         app.add_middleware(
             LoggingMiddleware,

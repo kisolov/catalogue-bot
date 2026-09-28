@@ -18,13 +18,13 @@ Redis, слоистая архитектура на `dependency-injector`.
 ## Быстрый старт (Docker)
 
 ```bash
-cp .env.example .env          # заполните CHANGEME: DB_PASSWORD, JWT_SECRET_KEY, TELEGRAM_BOT_TOKEN
+cp .env.example .env          # заполните DB_PASSWORD, REDIS_PASSWORD, JWT_SECRET_KEY, TELEGRAM_BOT_TOKEN, SERVER_ALLOWED_ORIGINS
 make up                       # postgres + redis + backend + nginx
 ```
 
-API: `http://localhost:8080/api/docs` (порт задаётся `PORT` в `.env`).
+API: `http://localhost:8080/api/` (порт задаётся `PORT` в `.env`). Swagger `/api/docs` по умолчанию выключен: включите `DOCS_ENABLED=true` в `.env`.
 Миграции применяются автоматически при старте, повторный запуск безопасен.
-pgAdmin: `make pgadmin` (профиль `tools`).
+pgAdmin: задайте `PGADMIN_PASSWORD` и выполните `make pgadmin` (профиль `tools`, порт только на 127.0.0.1).
 
 Первого админа создайте вручную после первого входа через Telegram:
 
@@ -41,7 +41,7 @@ docker compose exec postgres psql -U catalogue -d catalogue \
 make install
 export DB_PROVIDER=postgres DB_HOST=localhost DB_PORT=5432 DB_USER=test \
        DB_PASSWORD=test DB_NAME=catalogue_test DB_SCHEMA=public \
-       REDIS_HOST=localhost JWT_SECRET_KEY=dev SERVER_ALLOWED_ORIGINS='["*"]' \
+       REDIS_HOST=localhost JWT_SECRET_KEY=dev SERVER_ALLOWED_ORIGINS='["http://localhost"]' \
        SERVER_PORT=8000 SERVER_HOST=127.0.0.1 ENVIRONMENT=test
 make test        # тесты пересоздают схему БД — используйте отдельную базу!
 make lint        # flake8 + black --check

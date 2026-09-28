@@ -2,7 +2,47 @@ from typing import Optional, Callable, Awaitable
 from fastapi import Request, Response
 from starlette.types import ASGIApp
 from starlette.middleware.base import BaseHTTPMiddleware
+import json
 import logging
+
+SENSITIVE_HEADERS = {"authorization", "cookie", "set-cookie", "x-api-key"}
+SENSITIVE_FIELDS = {
+    "token",
+    "access_token",
+    "init_data",
+    "initdata",
+    "password",
+    "secret",
+    "hash",
+}
+MASK = "***"
+
+
+def mask_headers(headers) -> dict:
+    return {
+        k: (MASK if k.lower() in SENSITIVE_HEADERS else v) for k, v in headers.items()
+    }
+
+
+def _mask_value(value):
+    if isinstance(value, dict):
+        return {
+            k: (MASK if k.lower() in SENSITIVE_FIELDS else _mask_value(v))
+            for k, v in value.items()
+        }
+    if isinstance(value, list):
+        return [_mask_value(v) for v in value]
+    return value
+
+
+def mask_body(body: str) -> str:
+    """Скрывает токены и initData в JSON-теле; не-JSON тело не логируем."""
+    if not body:
+        return body
+    try:
+        return json.dumps(_mask_value(json.loads(body)), ensure_ascii=False)
+    except ValueError:
+        return "<non-json body hidden>"
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
@@ -60,7 +100,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         body = await self._get_body(request)
         self.logger.info(
             f"Request: method={request.method} path={request.url.path} "
-            f"headers={dict(request.headers)} body={body}"
+            f"headers={mask_headers(request.headers)} body={mask_body(body)}"
         )
 
     async def _log_response(self, response: Response) -> None:
@@ -68,11 +108,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         if len(body) > self.max_body_length:
             body_str = f"<body_too_large {len(body)} bytes>"
         else:
-            body_str = body.decode(errors="replace")
+            body_str = mask_body(body.decode(errors="replace"))
 
         self.logger.info(
             f"Response: status_code={response.status_code} "
-            f"headers={dict(response.headers)} body={body_str}"
+            f"headers={mask_headers(response.headers)} body={body_str}"
         )
 
     async def _get_body(self, request: Request) -> str:
