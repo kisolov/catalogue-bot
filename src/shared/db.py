@@ -41,23 +41,37 @@ class Database(ABC):
             conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
             with conn.cursor() as cur:
-                # Устанавливаем схему ОДИН раз для этого соединения
                 cur.execute(f"SET search_path TO {self.settings.schema}")
+                cur.execute(
+                    "CREATE TABLE IF NOT EXISTS schema_migrations ("
+                    "name TEXT PRIMARY KEY, applied_at TIMESTAMPTZ DEFAULT now())"
+                )
+                cur.execute("SELECT name FROM schema_migrations")
+                applied = {row[0] for row in cur.fetchall()}
 
-                # Проходим по всем файлам миграций
+                if not applied:
+                    # База, созданная до появления учёта миграций: схема уже есть.
+                    cur.execute("SELECT to_regclass('users') IS NOT NULL")
+                    if cur.fetchone()[0]:
+                        applied = set(sql_files)
+                        for name in sql_files:
+                            cur.execute(
+                                "INSERT INTO schema_migrations (name) VALUES (%s)",
+                                (name,),
+                            )
+
                 for file_name in sql_files:
-                    file_path = migrations_path / file_name
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        content = f.read()
-                        # Разделяем файл на команды
-                        statements = content.split("-- STATEMENT-END")
-
-                        # Выполняем каждую команду в том же самом курсоре
-                        for stmt in statements:
-                            cleaned_stmt = stmt.strip()
-                            if cleaned_stmt:
-                                # ВАЖНО: Мы больше не вызываем self.execute_sql()!
-                                cur.execute(cleaned_stmt)
+                    if file_name in applied:
+                        continue
+                    content = (migrations_path / file_name).read_text(encoding="utf-8")
+                    for stmt in content.split("-- STATEMENT-END"):
+                        cleaned_stmt = stmt.strip()
+                        if cleaned_stmt:
+                            cur.execute(cleaned_stmt)
+                    cur.execute(
+                        "INSERT INTO schema_migrations (name) VALUES (%s)",
+                        (file_name,),
+                    )
         finally:
             # Гарантированно закрываем соединение после всех операций
             if conn:

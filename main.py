@@ -1,25 +1,17 @@
 import asyncio
-import sys
 
-from dependency_injector.wiring import Provide, inject
-
-import settings
-from di import container, Container
+from di import container
 from src.bootstrap.server_factory import ServerFactory
 
 
-@inject
-async def run_server(
-    server_config: settings.ServerSettings = Provide[Container.server_config],
-):
-    await container.init_resources()
+async def run_server() -> None:
+    container.init_resources()
     try:
-        server = ServerFactory(server_config).create_server()
+        server = ServerFactory(container.server_settings()).create_server()
         await server.serve()
     finally:
-        await container.shutdown_resources()
+        container.shutdown_resources()
 
 
 if __name__ == "__main__":
-    container.wire(modules=[sys.modules[__name__]])
     asyncio.run(run_server())

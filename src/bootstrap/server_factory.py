@@ -33,7 +33,7 @@ class ServerFactory:
 
     def _configure_app(self) -> FastAPI:
         app = FastAPI(
-            title="freedomvpn backend",
+            title="Catalogue backend",
             version="1.0.0",
             exception_handlers={
                 RequestValidationError: validation_exception_handler,

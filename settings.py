@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from pydantic import SecretStr
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class ServerSettings(BaseSettings):
@@ -9,10 +9,9 @@ class ServerSettings(BaseSettings):
     port: int
     host: str
 
-    class Config:
-        env_prefix = "SERVER_"
-        extra = "ignore"
-        env_file = ".env"
+    model_config = SettingsConfigDict(
+        env_prefix="SERVER_", extra="ignore", env_file=".env"
+    )
 
 
 class DatabaseSettings(BaseSettings):
@@ -29,10 +28,9 @@ class DatabaseSettings(BaseSettings):
     timeout: int = 30
     migrations_path: str = "migrations/sql/db.sql"
 
-    class Config:
-        env_file = ".env"
-        env_prefix = "DB_"
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_prefix="DB_", extra="ignore", env_file=".env"
+    )
 
 
 class RedisSettings(BaseSettings):
@@ -44,10 +42,9 @@ class RedisSettings(BaseSettings):
     timeout: int = 30
     prefix: str = "app:"
 
-    class Config:
-        env_file = ".env"
-        env_prefix = "REDIS_"
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_prefix="REDIS_", extra="ignore", env_file=".env"
+    )
 
 
 class JWTSettings(BaseSettings):
@@ -55,7 +52,6 @@ class JWTSettings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expires_minutes: int = 60 * 24
 
-    class Config:
-        env_file = ".env"
-        env_prefix = "JWT_"
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_prefix="JWT_", extra="ignore", env_file=".env"
+    )

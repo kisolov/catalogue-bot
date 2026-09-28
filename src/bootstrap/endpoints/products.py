@@ -46,6 +46,5 @@ async def update_product(
     request: UpdateProductRequest,
     uc: UpdateProduct = Depends(Provide[Container.update_product]),
 ) -> Product:
-    print(request.model_dump(exclude_unset=True))
     cmd = UpdateProductCmd(id=product_id, **request.model_dump(exclude_unset=True))
     return await uc(cmd)
