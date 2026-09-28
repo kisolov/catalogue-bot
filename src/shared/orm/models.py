@@ -56,7 +56,7 @@ class PonyCategory(db.Entity):
     # ИСПРАВЛЕНО: Явно указываем имя колонки для внешнего ключа
     parent = Optional("PonyCategory", column="parent_id", reverse="children")
     children = Set("PonyCategory", reverse="parent")
-    products = Set("PonyProduct")
+    products = Set("PonyProduct", cascade_delete=False)
 
 
 class PonyProduct(db.Entity):

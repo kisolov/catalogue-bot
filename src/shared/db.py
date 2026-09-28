@@ -53,12 +53,11 @@ class Database(ABC):
                     # База, созданная до появления учёта миграций: схема уже есть.
                     cur.execute("SELECT to_regclass('users') IS NOT NULL")
                     if cur.fetchone()[0]:
-                        applied = set(sql_files)
-                        for name in sql_files:
-                            cur.execute(
-                                "INSERT INTO schema_migrations (name) VALUES (%s)",
-                                (name,),
-                            )
+                        applied = {"db.sql"}
+                        cur.execute(
+                            "INSERT INTO schema_migrations (name) VALUES (%s)",
+                            ("db.sql",),
+                        )
 
                 for file_name in sql_files:
                     if file_name in applied:

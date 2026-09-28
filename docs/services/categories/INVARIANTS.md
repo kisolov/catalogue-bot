@@ -4,7 +4,7 @@
 |---|---|
 | `slug` уникален (проверка + `UNIQUE`); при PATCH сравнивается с текущим, своё же значение не конфликтует | [`PonyCategoryRepository`](../../../src/categories/adapters/pony.py) |
 | Категорию с товарами или подкатегориями нельзя удалить (409) | [`delete`](../../../src/categories/adapters/pony.py) |
-| В БД `products.category_id` имеет `ON DELETE CASCADE`, а `categories.parent_id` — `SET NULL`; потерю товаров при удалении категории предотвращает **только** проверка в приложении | [`db.sql`](../../../migrations/sql/db.sql), `delete` |
+| В БД `products.category_id` — `ON DELETE RESTRICT`, а `categories.parent_id` — `SET NULL`; в Pony у `products` стоит `cascade_delete=False`. Проверка в `delete` даёт 409, БД остаётся последней линией защиты | [`db_002…`](../../../migrations/sql/db_002_products_category_restrict.sql), [`models.py`](../../../src/shared/orm/models.py), `delete` |
 | PATCH частичный (`exclude_unset`); `parent_id` можно менять | `update` |
 | `GET /categories/` возвращает все категории плоским списком (`parent_id` указывает на родителя); фильтра по родителю на уровне API нет | [`ListCategories`](../../../src/categories/uc/crud.py) |
 

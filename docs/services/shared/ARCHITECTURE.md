@@ -22,22 +22,23 @@ erDiagram
 |---|---|
 | `users` | `telegram_id BIGINT UNIQUE`, `role` enum `user`/`admin` |
 | `categories` | `slug UNIQUE`, `parent_id → categories` |
-| `products` | `slug UNIQUE`, `sku UNIQUE` (может быть `NULL`), `price >= 0`, `stock >= 0`, `compare_at_price >= price`, `category_id → categories`, `fts` (tsvector, триггер) |
+| `products` | `slug UNIQUE`, `sku UNIQUE` (может быть `NULL`), `price >= 0`, `stock >= 0`, `compare_at_price >= price`, `category_id → categories` (RESTRICT), `fts` (tsvector, триггер) |
 | `cart_items` | `UNIQUE(user_id, product_id)`, `quantity BETWEEN 1 AND 1000` |
 | `orders` | `status`, `total_price >= 0`, `user_id → users` |
 | `order_items` | `price >= 0`, `quantity > 0`, `order_id → orders`, `product_id → products` (RESTRICT) |
 | `favorites` | `UNIQUE(user_id, product_id)` |
 
-Схема — [`db.sql`](../../../migrations/sql/db.sql). ORM-сущности (`Pony*`) —
+Схема — [`db.sql`](../../../migrations/sql/db.sql) и [`db_002_products_category_restrict.sql`](../../../migrations/sql/db_002_products_category_restrict.sql). ORM-сущности (`Pony*`) —
 [`shared/orm/models.py`](../../../src/shared/orm/models.py); доменные pydantic-модели от них
 независимы, адаптеры переводят одно в другое.
 
 ## Миграции
 
 [`create_tables_from_migrations`](../../../src/shared/db.py) на старте применяет каждый `.sql`
-из каталога миграций один раз; имена применённых лежат в `schema_migrations`. Если этой
-таблицы нет, но есть `users`, БД считается уже мигрированной (совместимость со старыми
-установками). Повторный запуск безопасен.
+из каталога миграций один раз в алфавитном порядке (поэтому дополнительные файлы называются
+`db_00N_…`, а не `00N_…`, иначе они шли бы раньше `db.sql`); имена применённых лежат в
+`schema_migrations`. Если этой таблицы нет, но есть `users`, считается применённой только
+`db.sql` (совместимость со старыми установками), остальные выполняются. Повторный запуск безопасен.
 
 ## Настройки
 
