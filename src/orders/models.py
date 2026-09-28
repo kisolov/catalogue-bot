@@ -13,6 +13,15 @@ class OrderStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
+ALLOWED_TRANSITIONS: dict[OrderStatus, set[OrderStatus]] = {
+    OrderStatus.NEW: {OrderStatus.PROCESSING, OrderStatus.CANCELLED},
+    OrderStatus.PROCESSING: {OrderStatus.SHIPPED, OrderStatus.CANCELLED},
+    OrderStatus.SHIPPED: {OrderStatus.DELIVERED},
+    OrderStatus.DELIVERED: set(),
+    OrderStatus.CANCELLED: set(),
+}
+
+
 class OrderItem(BaseModel):
     id: int
     order_id: int

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from src.orders.models import Order
+from src.orders.models import Order, OrderStatus
 
 
 class OrderRepository(ABC):
@@ -17,3 +17,13 @@ class OrderRepository(ABC):
 
     @abstractmethod
     def update(self, order: Order) -> Order: ...
+
+    @abstractmethod
+    def create_from_cart(self, user_id: int) -> Order:
+        """Атомарно: заказ из корзины, списание остатков, очистка корзины."""
+
+    @abstractmethod
+    def set_status(
+        self, order_id: int, status: OrderStatus, restore_stock: bool
+    ) -> Order:
+        """Атомарно: смена статуса и (при отмене) возврат остатков."""

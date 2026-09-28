@@ -105,6 +105,13 @@ class Container(containers.DeclarativeContainer):
     clear_cart = providers.Singleton(cart_crud_uc.ClearCart, service=cart_service)
 
     create_order = providers.Singleton(order_crud_uc.CreateOrder, service=order_service)
+    create_order_from_cart = providers.Singleton(
+        order_crud_uc.CreateOrderFromCart, service=order_service
+    )
+    update_order_status = providers.Singleton(
+        order_crud_uc.UpdateOrderStatus, service=order_service
+    )
+    cancel_order = providers.Singleton(order_crud_uc.CancelOrder, service=order_service)
     get_order_by_id = providers.Singleton(
         order_crud_uc.GetOrderById, service=order_service
     )

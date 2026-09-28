@@ -6,7 +6,7 @@ from src.shared.exceptions import (
     UniqueViolationException,
     ProductInUseException,
 )
-from src.shared.orm.models import PonyProduct, PonyCategory, db
+from src.shared.orm.models import PonyProduct, PonyCategory, PonyOrderItem, db
 from src.products.models import Product, CreateProductCmd, UpdateProductCmd
 from src.products.ports import ProductRepository
 
@@ -135,6 +135,10 @@ class PonyProductRepository(ProductRepository):
         pony_product = PonyProduct.get(id=product_id)
         if not pony_product:
             raise NotFoundException(f"Product[id={product_id}]")
+        # Pony каскадно удаляет зависимые сущности в обход ON DELETE RESTRICT,
+        # поэтому проверяем заказы явно, иначе позиции заказов пропадут молча.
+        if PonyOrderItem.exists(lambda item: item.product == pony_product):
+            raise ProductInUseException(product_id)
         try:
             pony_product.delete()
             flush()

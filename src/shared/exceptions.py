@@ -37,3 +37,23 @@ class ProductInUseException(DomainException):
 class CategoryNotEmptyException(DomainException):
     def __init__(self, category_id: int):
         super().__init__(f"Категория {category_id} содержит товары или подкатегории")
+
+
+class EmptyCartException(DomainException):
+    def __init__(self):
+        super().__init__("Корзина пуста")
+
+
+class InsufficientStockException(DomainException):
+    def __init__(self, product_id: int):
+        super().__init__(f"Недостаточно товара {product_id} на складе")
+
+
+class ProductUnavailableException(DomainException):
+    def __init__(self, product_id: int):
+        super().__init__(f"Товар {product_id} недоступен для заказа")
+
+
+class InvalidOrderTransitionException(DomainException):
+    def __init__(self, current: str, new: str):
+        super().__init__(f"Нельзя перевести заказ из {current} в {new}")

@@ -23,6 +23,10 @@ from src.shared.exceptions import (
     UniqueViolationException,
     ProductInUseException,
     CategoryNotEmptyException,
+    EmptyCartException,
+    InsufficientStockException,
+    ProductUnavailableException,
+    InvalidOrderTransitionException,
 )
 
 
@@ -48,6 +52,10 @@ class ServerFactory:
                 UniqueViolationException: http_exception_wrapper(409),
                 ProductInUseException: http_exception_wrapper(409),
                 CategoryNotEmptyException: http_exception_wrapper(409),
+                EmptyCartException: http_exception_wrapper(409),
+                InsufficientStockException: http_exception_wrapper(409),
+                ProductUnavailableException: http_exception_wrapper(409),
+                InvalidOrderTransitionException: http_exception_wrapper(409),
             },
             root_path="/api",
         )
