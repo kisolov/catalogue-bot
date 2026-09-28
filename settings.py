@@ -55,3 +55,12 @@ class JWTSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="JWT_", extra="ignore", env_file=".env"
     )
+
+
+class TelegramSettings(BaseSettings):
+    bot_token: SecretStr
+    init_data_max_age_seconds: int = 60 * 60 * 24
+
+    model_config = SettingsConfigDict(
+        env_prefix="TELEGRAM_", extra="ignore", env_file=".env"
+    )

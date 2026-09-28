@@ -27,6 +27,8 @@ from src.shared.exceptions import (
     InsufficientStockException,
     ProductUnavailableException,
     InvalidOrderTransitionException,
+    InvalidInitDataException,
+    InitDataExpiredException,
 )
 
 
@@ -56,6 +58,8 @@ class ServerFactory:
                 InsufficientStockException: http_exception_wrapper(409),
                 ProductUnavailableException: http_exception_wrapper(409),
                 InvalidOrderTransitionException: http_exception_wrapper(409),
+                InvalidInitDataException: http_exception_wrapper(401),
+                InitDataExpiredException: http_exception_wrapper(401),
             },
             root_path="/api",
         )

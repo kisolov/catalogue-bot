@@ -11,6 +11,9 @@ from tests.utils.factories import (
     OrderFactory,
     WishlistFactory,
 )
+from pydantic import SecretStr
+
+from settings import TelegramSettings
 from src.auth.service import TokenService
 
 
@@ -60,6 +63,10 @@ class TestContainer(Container):
         product_factory=product_factory,
         user_factory=user_factory,
     )
+    telegram_settings = providers.Singleton(
+        TelegramSettings, bot_token=SecretStr("123456:TEST-BOT-TOKEN")
+    )
+    Container.telegram_settings.override(telegram_settings)
     Container.token_repo.override(token_repo)
     Container.token_service.override(token_service)
 

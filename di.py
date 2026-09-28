@@ -1,8 +1,16 @@
 from dependency_injector import containers, providers
 
-from settings import ServerSettings, DatabaseSettings, RedisSettings, JWTSettings
+from settings import (
+    ServerSettings,
+    DatabaseSettings,
+    RedisSettings,
+    JWTSettings,
+    TelegramSettings,
+)
 from src.auth.redis_adapter import RedisTokenRepository
 from src.auth.service import TokenService
+from src.auth.telegram import TelegramInitDataService
+from src.auth.uc.telegram import LoginWithTelegram, Logout
 from src.cart.adapters.pony import PonyCartRepository
 from src.categories.adapters.pony import PonyCategoryRepository
 from src.orders.adapters.pony import PonyOrderRepository
@@ -30,6 +38,7 @@ class Container(containers.DeclarativeContainer):
     db_settings = providers.Singleton(DatabaseSettings)
     redis_settings = providers.Singleton(RedisSettings)
     jwt_settings = providers.Singleton(JWTSettings)
+    telegram_settings = providers.Singleton(TelegramSettings)
 
     # ---- adapters ----
     pony_db = providers.Resource(PonyDb, db_settings)
@@ -54,7 +63,18 @@ class Container(containers.DeclarativeContainer):
         TokenService, repo=token_repo, jwt_settings=jwt_settings
     )
 
+    telegram_init_data_service = providers.Singleton(
+        TelegramInitDataService, settings=telegram_settings
+    )
+
     # ---- use cases ----
+    login_with_telegram = providers.Singleton(
+        LoginWithTelegram,
+        init_data_service=telegram_init_data_service,
+        user_service=user_service,
+        token_service=token_service,
+    )
+    logout = providers.Singleton(Logout, token_service=token_service)
     create_user = providers.Singleton(
         user_crud_uc.CreateUser, user_service=user_service
     )

@@ -57,3 +57,13 @@ class ProductUnavailableException(DomainException):
 class InvalidOrderTransitionException(DomainException):
     def __init__(self, current: str, new: str):
         super().__init__(f"Нельзя перевести заказ из {current} в {new}")
+
+
+class InvalidInitDataException(DomainException):
+    def __init__(self, reason: str = "подпись не совпадает"):
+        super().__init__(f"Некорректные данные Telegram: {reason}")
+
+
+class InitDataExpiredException(DomainException):
+    def __init__(self):
+        super().__init__("Данные Telegram устарели")
