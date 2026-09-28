@@ -15,6 +15,7 @@ class UniqueViolationException(DomainException):
     def __init__(self, unique_key: str):
         super().__init__(f"Нарушение уникальности {unique_key}")
 
+
 class TokenException(DomainException):
     pass
 

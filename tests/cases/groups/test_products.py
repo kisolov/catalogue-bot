@@ -153,7 +153,9 @@ class TestProductsEndpoints(BaseTestGroup, ModelsFixtures):
         )
 
         assert response.status_code == 204
-        assert fastapi_client.get(f"/api/products/{sample_product.id}").status_code == 404
+        assert (
+            fastapi_client.get(f"/api/products/{sample_product.id}").status_code == 404
+        )
 
     async def test_delete_product_forbidden_for_regular_user(
         self, sample_product, auth_headers, fastapi_client
@@ -181,7 +183,6 @@ class TestProductsEndpoints(BaseTestGroup, ModelsFixtures):
         response = fastapi_client.get(f"/api/products/?category_id={category.id}")
 
         assert [p["id"] for p in response.json()] == [inside.id]
-
 
     async def test_create_products_without_sku_and_description(
         self, sample_category, admin_auth_headers, fastapi_client

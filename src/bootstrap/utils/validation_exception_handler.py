@@ -19,7 +19,11 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         if error_type == "missing":
             message = f"Поле '{field_name}' обязательно, но отсутствует в запросе."
         elif error_type == "type_error":
-            message = f"Поле '{field_name}' имеет неверный тип. Ожидается: {error.get('expected_type', 'неизвестно')}. Получено: {input_type}."
+            expected = error.get("expected_type", "неизвестно")
+            message = (
+                f"Поле '{field_name}' имеет неверный тип. "
+                f"Ожидается: {expected}. Получено: {input_type}."
+            )
         else:
             message = f"Ошибка в поле '{field_name}': {error_msg}"
 

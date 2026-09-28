@@ -65,12 +65,21 @@ class TestTelegramAuth(BaseTestGroup, ModelsFixtures):
     async def test_garbage_rejected(self, fastapi_client):
         assert self._login(fastapi_client, "not-init-data").status_code == 401
 
-    async def test_logout_revokes_token(self, sample_user, auth_headers, fastapi_client):
-        assert fastapi_client.get("/api/auth/me", headers=auth_headers).status_code == 200
+    async def test_logout_revokes_token(
+        self, sample_user, auth_headers, fastapi_client
+    ):
+        assert (
+            fastapi_client.get("/api/auth/me", headers=auth_headers).status_code == 200
+        )
 
-        assert fastapi_client.post("/api/auth/logout", headers=auth_headers).status_code == 204
+        assert (
+            fastapi_client.post("/api/auth/logout", headers=auth_headers).status_code
+            == 204
+        )
 
-        assert fastapi_client.get("/api/auth/me", headers=auth_headers).status_code == 401
+        assert (
+            fastapi_client.get("/api/auth/me", headers=auth_headers).status_code == 401
+        )
 
     async def test_logout_requires_auth(self, fastapi_client):
         assert fastapi_client.post("/api/auth/logout").status_code == 401

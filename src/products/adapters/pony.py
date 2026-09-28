@@ -1,5 +1,11 @@
 from datetime import datetime, timezone
-from pony.orm import db_session, TransactionIntegrityError, IntegrityError, select, flush
+from pony.orm import (
+    db_session,
+    TransactionIntegrityError,
+    IntegrityError,
+    select,
+    flush,
+)
 
 from src.shared.exceptions import (
     NotFoundException,

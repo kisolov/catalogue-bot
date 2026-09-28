@@ -12,7 +12,10 @@ os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
 class CustomJsonFormatter(json.JsonFormatter):
     def __init__(self):
         super().__init__(
-            fmt="%(asctime)s %(levelname)s %(message)s %(filename)s %(funcName)s %(lineno)d %(traceback)s",
+            fmt=(
+                "%(asctime)s %(levelname)s %(message)s %(filename)s "
+                "%(funcName)s %(lineno)d %(traceback)s"
+            ),
             rename_fields={
                 "levelname": "level",
                 "filename": "file",

@@ -45,9 +45,7 @@ class OrderService:
     def change_status(self, order_id: int, new_status: OrderStatus) -> Order:
         order = self.repo.get_by_id(order_id)
         if new_status not in ALLOWED_TRANSITIONS[order.status]:
-            raise InvalidOrderTransitionException(
-                order.status.value, new_status.value
-            )
+            raise InvalidOrderTransitionException(order.status.value, new_status.value)
         return self.repo.set_status(
             order_id, new_status, restore_stock=new_status == OrderStatus.CANCELLED
         )

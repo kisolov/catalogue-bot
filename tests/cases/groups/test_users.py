@@ -66,7 +66,9 @@ class TestUsersEndpoints(BaseTestGroup, ModelsFixtures):
 
         assert response.status_code == 409
 
-    async def test_get_user_by_id_success(self, sample_user, admin_auth_headers, fastapi_client):
+    async def test_get_user_by_id_success(
+        self, sample_user, admin_auth_headers, fastapi_client
+    ):
         response = fastapi_client.get(
             f"/api/users/{sample_user.id}",
             headers=admin_auth_headers,
@@ -82,7 +84,9 @@ class TestUsersEndpoints(BaseTestGroup, ModelsFixtures):
 
         assert response.status_code == 401
 
-    async def test_get_user_by_id_forbidden(self, sample_user, auth_headers, fastapi_client):
+    async def test_get_user_by_id_forbidden(
+        self, sample_user, auth_headers, fastapi_client
+    ):
         response = fastapi_client.get(
             f"/api/users/{sample_user.id}",
             headers=auth_headers,

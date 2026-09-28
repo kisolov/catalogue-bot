@@ -27,10 +27,10 @@ class TokenService:
             payload = jwt.decode(
                 token, self.settings.secret_key, algorithms=[self.settings.algorithm]
             )
-            user_id = int(payload.get("sub"))
+            int(payload["sub"])
         except jwt.ExpiredSignatureError:
             raise TokenExpiredException()
-        except jwt.InvalidTokenError:
+        except (jwt.InvalidTokenError, KeyError, TypeError, ValueError):
             raise InvalidTokenException()
 
         stored_user_id = self.repo.get_token(token)

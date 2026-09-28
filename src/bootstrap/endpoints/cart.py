@@ -6,7 +6,7 @@ from starlette.responses import Response
 from di import container, Container
 from src.cart.models import Cart, RemoveCartItemCmd, CartItem, AddCartItemCmd
 from src.cart.schema import AddInCartRequest
-from src.cart.uc.crud import GetCart, RemoveFromCart, AddToCart, ClearCart
+from src.cart.uc.crud import GetCart, ClearCart
 from src.users.models import User
 from src.auth.presentation import get_current_user
 

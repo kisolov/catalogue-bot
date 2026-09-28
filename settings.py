@@ -29,9 +29,7 @@ class DatabaseSettings(BaseSettings):
     timeout: int = 30
     migrations_path: str = "migrations/sql/db.sql"
 
-    model_config = SettingsConfigDict(
-        env_prefix="DB_", extra="ignore", env_file=".env"
-    )
+    model_config = SettingsConfigDict(env_prefix="DB_", extra="ignore", env_file=".env")
 
 
 class RedisSettings(BaseSettings):

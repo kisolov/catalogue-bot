@@ -74,4 +74,6 @@ class TestCategoriesEndpoints(BaseTestGroup, ModelsFixtures):
         )
 
         assert response.status_code == 409
-        assert fastapi_client.get(f"/api/products/{sample_product.id}").status_code == 200
+        assert (
+            fastapi_client.get(f"/api/products/{sample_product.id}").status_code == 200
+        )

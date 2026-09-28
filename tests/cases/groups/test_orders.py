@@ -35,7 +35,11 @@ class TestOrdersEndpoints(BaseTestGroup, ModelsFixtures):
         assert cart.json()["items"] == []
 
     async def test_order_snapshots_price_and_name(
-        self, sample_user, sample_product, auth_headers, admin_auth_headers,
+        self,
+        sample_user,
+        sample_product,
+        auth_headers,
+        admin_auth_headers,
         fastapi_client,
     ):
         self._fill_cart(sample_user, sample_product, 1)
@@ -175,7 +179,11 @@ class TestOrdersEndpoints(BaseTestGroup, ModelsFixtures):
         assert self._stock(product) == 5
 
     async def test_owner_cannot_cancel_processing_order(
-        self, sample_user, order_factory, auth_headers, admin_auth_headers,
+        self,
+        sample_user,
+        order_factory,
+        auth_headers,
+        admin_auth_headers,
         fastapi_client,
     ):
         order = order_factory.create(user_id=sample_user.id)
@@ -203,7 +211,11 @@ class TestOrdersEndpoints(BaseTestGroup, ModelsFixtures):
         assert response.status_code == 404
 
     async def test_admin_cancel_restores_stock(
-        self, sample_user, product_factory, auth_headers, admin_auth_headers,
+        self,
+        sample_user,
+        product_factory,
+        auth_headers,
+        admin_auth_headers,
         fastapi_client,
     ):
         product = product_factory.create(stock=4)
@@ -219,7 +231,11 @@ class TestOrdersEndpoints(BaseTestGroup, ModelsFixtures):
         assert self._stock(product) == 4
 
     async def test_delete_product_used_in_order_is_rejected(
-        self, sample_user, sample_product, auth_headers, admin_auth_headers,
+        self,
+        sample_user,
+        sample_product,
+        auth_headers,
+        admin_auth_headers,
         fastapi_client,
     ):
         self._fill_cart(sample_user, sample_product, 1)

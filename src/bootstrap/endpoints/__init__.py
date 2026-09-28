@@ -9,9 +9,11 @@ from .orders import router as orders_router
 from .cart import router as cart_router
 from .wishlist import router as wishlist_router
 
-main_router = APIRouter(responses={
+main_router = APIRouter(
+    responses={
         404: {"description": "Not found"},
-    },)
+    },
+)
 
 main_router.include_router(health_router)
 main_router.include_router(auth_router)
