@@ -49,10 +49,50 @@ make lint        # flake8 + black --check
 
 Тестовая БД обнуляется при каждом тесте: не указывайте рабочую базу.
 
+## Как пользоваться API
+
+Все пути идут с префиксом `/api`. Полный контракт — Swagger: `/api/docs`.
+
+| Роль | Что может |
+|---|---|
+| без входа | смотреть товары и категории, `POST /auth/telegram`, `/health` |
+| `user` | корзина, избранное, свои заказы (создать, посмотреть, отменить в `new`), `/auth/me`, выход |
+| `admin` | всё выше + управление товарами, категориями, пользователями, смена статусов заказов, любой заказ |
+
+```bash
+API=http://localhost:8080/api
+
+# 1. Вход: init_data — строка window.Telegram.WebApp.initData из Mini App
+TOKEN=$(curl -s -X POST $API/auth/telegram -H 'Content-Type: application/json' \
+  -d '{"init_data": "<initData>"}' | jq -r .access_token)
+AUTH="Authorization: Bearer $TOKEN"
+
+# 2. Каталог (публично)
+curl -s $API/categories/
+curl -s "$API/products/?category_id=1"
+
+# 3. Корзина и заказ
+curl -s -X POST $API/cart/products -H "$AUTH" -H 'Content-Type: application/json' \
+  -d '{"product_id": 3, "quantity": 2}'
+curl -s -X POST $API/orders/ -H "$AUTH"          # 201, заказ в статусе new, остаток списан
+curl -s -X POST $API/orders/12/cancel -H "$AUTH" # пока статус new; остаток вернётся
+
+# 4. Админ: создать товар, продвинуть заказ
+curl -s -X POST $API/products/ -H "$AUTH" -H 'Content-Type: application/json' \
+  -d '{"name":"Кружка","slug":"mug","price":"12.50","stock":10,"is_active":true,"category_id":1}'
+curl -s -X PATCH $API/orders/12/status -H "$AUTH" -H 'Content-Type: application/json' \
+  -d '{"status":"processing"}'
+```
+
+Ошибки приходят как `{"detail": "..."}`: 401 нет/просрочен токен, 403 не админ, 404 не найдено
+(и чужой заказ), 409 нарушено бизнес-правило (пустая корзина, нет остатка, недопустимый статус,
+дубликат), 422 неверный запрос.
+
 ## Архитектура
 
 `endpoint → use case → service → port ← adapter`, зависимости собираются в
-[`di.py`](di.py). Подробности, инварианты и решения — в [`docs/services/`](docs/services/ARCHITECTURE.md).
+[`di.py`](di.py). Документация по каждому домену (архитектура, сценарии, инварианты, отказы, решения) — в
+[`docs/services/`](docs/services/ARCHITECTURE.md): начните с карты документации в этом файле.
 
 ```
 src/

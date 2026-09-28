@@ -1,34 +1,51 @@
 # Сценарии
 
-## Вход через Telegram
+Сквозные сценарии пользователя. Подробности каждого шага — в `DATA_FLOWS.md` и `INVARIANTS.md` доменов.
+
+## Путь покупателя
+
+```mermaid
+sequenceDiagram
+    participant M as Mini App
+    participant A as API
+    participant R as Redis
+    participant D as PostgreSQL
+    M->>A: POST /auth/telegram {init_data}
+    A->>A: проверка подписи и auth_date
+    A->>D: найти/создать пользователя
+    A->>R: SET токен (TTL)
+    A-->>M: access_token, user
+    M->>A: GET /products/, GET /categories/
+    M->>A: POST /cart/products {product_id, quantity}
+    A->>D: позиция корзины
+    M->>A: POST /orders/
+    A->>D: транзакция: блокировка товаров, заказ, остатки, очистка корзины
+    A-->>M: Order (new)
+    M->>A: POST /orders/{id}/cancel  (пока new)
+    A->>D: статус cancelled, остатки возвращены
+```
+
+## Сценарии по доменам
+
+| Сценарий | Где описан |
+|---|---|
+| Вход, проверка токена, выход | [auth/DATA_FLOWS.md](auth/DATA_FLOWS.md) |
+| Оформление заказа, отмена, смена статуса, жизненный цикл | [orders/DATA_FLOWS.md](orders/DATA_FLOWS.md) |
+
+## Управление каталогом (админ)
 
 ```
-Mini App → POST /auth/telegram {init_data}
-  → LoginWithTelegram
-      → TelegramInitDataService.validate   (подпись, возраст auth_date)
-      → UserService.get_by_telegram_id     (нет → create role=user; гонка → повторный get)
-      → TokenService.create_token          (JWT + запись в Redis с TTL)
-  ← {access_token, user}
+1. POST /categories/                      (slug уникален)
+2. POST /products/  {category_id, price, stock, is_active}
+3. PATCH /products/{id} {stock | price | is_active}
+4. DELETE /products/{id}    → 409, если товар уже в заказах (тогда is_active=false)
+   DELETE /categories/{id}  → 409, если есть товары или подкатегории
 ```
 
-## Оформление заказа
+## Выдача прав админа
 
 ```
-POST /orders/ → CreateOrderFromCart(user_id) → OrderService → PonyOrderRepository.create_from_cart
-  один db_session (одна транзакция):
-    корзина пуста                       → EmptyCart          (409)
-    для каждой позиции: SELECT ... FOR UPDATE по товару
-      товар неактивен                   → ProductUnavailable (409)
-      остаток < количества              → InsufficientStock  (409)
-    создать Order(new) + OrderItem со снимком цены/названия
-    списать остаток, удалить позицию корзины
-  любое исключение → откат, корзина и остатки не тронуты
-```
-
-## Отмена и смена статуса
-
-```
-POST /orders/{id}/cancel (владелец) → OrderService.cancel_by_owner → только из new
-PATCH /orders/{id}/status (админ)   → OrderService.change_status  → матрица переходов
-  → repo.set_status(restore_stock = новый статус == cancelled)  # статус и возврат остатков атомарно
+1. Пользователь входит через Telegram → создаётся с ролью user
+2. SQL: UPDATE users SET role='admin' WHERE telegram_id = <id>   (см. README)
+3. Роль читается при каждом запросе — действует сразу, перевход не нужен
 ```
