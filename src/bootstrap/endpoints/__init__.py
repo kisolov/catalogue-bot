@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from .health import router as health_router
 from .auth import router as auth_router
 from .users import router as users_router
 from .products import router as products_router
@@ -12,6 +13,7 @@ main_router = APIRouter(responses={
         404: {"description": "Not found"},
     },)
 
+main_router.include_router(health_router)
 main_router.include_router(auth_router)
 main_router.include_router(users_router)
 main_router.include_router(products_router)

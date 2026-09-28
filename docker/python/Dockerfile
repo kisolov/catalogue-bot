@@ -1,10 +1,36 @@
-FROM python:3.12-slim AS base
+FROM python:3.12-slim AS builder
+
+WORKDIR /build
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt .
+RUN python -m venv /opt/venv \
+    && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+
+FROM python:3.12-slim
+
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libpq5 \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --create-home --uid 10001 app
 
 WORKDIR /app
+COPY --from=builder /opt/venv /opt/venv
+COPY --chown=app:app main.py di.py settings.py ./
+COPY --chown=app:app src ./src
+COPY --chown=app:app migrations ./migrations
+RUN mkdir -p logs && chown app:app logs
 
-RUN apt-get update && apt-get install -y gcc libpq-dev && rm -rf /var/lib/apt/lists/*
+USER app
+EXPOSE 8000
 
-COPY requirements.txt .
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=5 \
+    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"
 
-RUN pip install --no-cache-dir -r requirements.txt
 CMD ["python", "main.py"]

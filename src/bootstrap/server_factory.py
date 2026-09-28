@@ -95,6 +95,6 @@ class ServerFactory:
             lifespan="auto",
             log_level="info",
             proxy_headers=True,
-            forwarded_allow_ips="172.18.0.2,127.0.0.1,::1",
+            forwarded_allow_ips=self.settings.forwarded_allow_ips,
         )
         return uvicorn.Server(uvicorn_config)

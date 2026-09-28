@@ -1,77 +1,89 @@
 services:
   postgres:
-    image: postgres
-    networks:
-      - backend_network
-    ports:
-      - "${DB_PORT}:5432"
+    image: postgres:16-alpine
     environment:
-      POSTGRES_PASSWORD: ${PG_PASSWORD}
-      POSTGRES_DB: ${PG_DATABASE}
-      POSTGRES_USER: ${PG_USER}
+      POSTGRES_USER: ${DB_USER:-catalogue}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?задайте DB_PASSWORD в .env}
+      POSTGRES_DB: ${DB_NAME:-catalogue}
     volumes:
-      - pg_data:/var/lib/postgresql
-      - ./migrations/sql:/docker-entrypoint-initdb.d
+      - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${PG_USER:-postgres}" ]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-catalogue} -d ${DB_NAME:-catalogue}"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     restart: unless-stopped
 
   backend:
     build:
       context: .
       dockerfile: docker/python/Dockerfile
+    environment:
+      ENVIRONMENT: production
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: "8000"
+      SERVER_ALLOWED_ORIGINS: ${SERVER_ALLOWED_ORIGINS:-["*"]}
+      SERVER_FORWARDED_ALLOW_IPS: "*"
+      DB_PROVIDER: postgres
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-catalogue}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME:-catalogue}
+      DB_SCHEMA: ${DB_SCHEMA:-public}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?задайте JWT_SECRET_KEY в .env}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?задайте TELEGRAM_BOT_TOKEN в .env}
+    volumes:
+      - logs:/app/logs
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./src:/app/src
-      - logs:/app/logs
-      - ./migrations:/app/migrations
-      - ./main.py:/app/main.py
-      - ./.env:/app/.env
-      - ./config.py:/app/config.py
-      - ./di.py:/app/di.py
-      - ./tests:/app/tests
-    networks:
-      - backend_network
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
   nginx:
     image: nginx:alpine
     ports:
-      - "${PORT}:80"
+      - "${PORT:-8080}:80"
     volumes:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      - backend
-    networks:
-      - backend_network
+      backend:
+        condition: service_healthy
     restart: unless-stopped
 
   pgadmin:
+    profiles: ["tools"]
     image: dpage/pgadmin4
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
     ports:
-      - "5050:80"
+      - "${PGADMIN_PORT:-5050}:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
-      - postgres
-    networks:
-      - backend_network
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
   pg_data:
+  redis_data:
   logs:
   pgadmin_data:
-
-networks:
-  backend_network:
-    external: true
-    name: ${PROJECT_NAME}_network

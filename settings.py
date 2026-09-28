@@ -8,6 +8,7 @@ class ServerSettings(BaseSettings):
     allowed_origins: List[str]
     port: int
     host: str
+    forwarded_allow_ips: str = "127.0.0.1"
 
     model_config = SettingsConfigDict(
         env_prefix="SERVER_", extra="ignore", env_file=".env"
