@@ -6,7 +6,9 @@
 POST /orders/ → CreateOrderFromCart(user_id) → OrderService → PostgresOrderRepository.create_from_cart
   одна транзакция (`Database.transaction()`):
     корзина пуста                       → EmptyCart          (409)
-    для каждой позиции: SELECT ... FOR UPDATE по товару
+    один SELECT ... ORDER BY id FOR UPDATE по всем товарам корзины
+      (единый порядок блокировок: встречные заказы не дают deadlock)
+    для каждой позиции:
       товар неактивен                   → ProductUnavailable (409)
       остаток < количества              → InsufficientStock  (409)
     total = Σ price × quantity
@@ -19,17 +21,22 @@ POST /orders/ → CreateOrderFromCart(user_id) → OrderService → PostgresOrde
 
 ```
 POST /orders/{id}/cancel → CancelOrder → OrderService.cancel_by_owner
-  get_visible (чужой → 404) → статус ≠ new → 409
-  repo.set_status(cancelled, restore_stock=True)   # статус и возврат остатков атомарно
+  get_visible (чужой → 404)
+  repo.set_status(cancelled, allowed_from={new}, restore_stock=True)
 ```
 
 ## Смена статуса админом
 
 ```
 PATCH /orders/{id}/status → UpdateOrderStatus → OrderService.change_status
-  переход не в ALLOWED_TRANSITIONS → 409
-  repo.set_status(status, restore_stock = (status == cancelled))
+  allowed_from = статусы, из которых по ALLOWED_TRANSITIONS можно перейти в status
+  repo.set_status(status, allowed_from, restore_stock = (status == cancelled))
 ```
+
+`set_status` в одной транзакции: `SELECT … FOR UPDATE` по заказу → текущий статус не в
+`allowed_from` → 409 → смена статуса и (при отмене) возврат остатков. Проверка идёт под
+блокировкой, поэтому параллельные отмены владельцем и админом не вернут остаток дважды:
+вторая увидит `cancelled` и получит 409.
 
 Жизненный цикл:
 

@@ -11,6 +11,7 @@ from src.shared.db import Database
 from src.shared.exceptions import (
     EmptyCartException,
     InsufficientStockException,
+    InvalidOrderTransitionException,
     NotFoundException,
     ProductUnavailableException,
 )
@@ -117,15 +118,13 @@ class PostgresOrderRepository(OrderRepository):
                 raise EmptyCartException()
 
             now = datetime.now(timezone.utc)
+            products = await self._lock_products(
+                session, [item.product_id for item in cart_items]
+            )
             lines: list[tuple[CartItemRow, ProductRow]] = []
             total = Decimal("0")
             for cart_item in cart_items:
-                # блокировка строки: параллельные заказы не продадут остаток дважды
-                product = await session.scalar(
-                    select(ProductRow)
-                    .where(ProductRow.id == cart_item.product_id)
-                    .with_for_update()
-                )
+                product = products.get(cart_item.product_id)
                 if product is None or not product.is_active:
                     raise ProductUnavailableException(cart_item.product_id)
                 if product.stock < cart_item.quantity:
@@ -158,8 +157,26 @@ class PostgresOrderRepository(OrderRepository):
             await session.flush()
             return await self._one(session, row)
 
+    @staticmethod
+    async def _lock_products(
+        session: AsyncSession, product_ids: List[int]
+    ) -> dict[int, ProductRow]:
+        # блокировка строк: параллельные заказы не продадут остаток дважды;
+        # единый порядок по id исключает deadlock встречных заказов
+        rows = await session.scalars(
+            select(ProductRow)
+            .where(ProductRow.id.in_(product_ids))
+            .order_by(ProductRow.id)
+            .with_for_update()
+        )
+        return {row.id: row for row in rows}
+
     async def set_status(
-        self, order_id: int, status: OrderStatus, restore_stock: bool
+        self,
+        order_id: int,
+        status: OrderStatus,
+        allowed_from: set[OrderStatus],
+        restore_stock: bool,
     ) -> Order:
         async with self.db.transaction() as session:
             row = await session.scalar(
@@ -167,18 +184,22 @@ class PostgresOrderRepository(OrderRepository):
             )
             if row is None:
                 raise NotFoundException(f"Order[id={order_id}]")
+            # проверка под блокировкой: параллельная смена статуса уже видна
+            current = OrderStatus(row.status)
+            if current not in allowed_from:
+                raise InvalidOrderTransitionException(current.value, status.value)
 
             if restore_stock:
-                items = await session.scalars(
-                    select(OrderItemRow).where(OrderItemRow.order_id == order_id)
+                items = list(
+                    await session.scalars(
+                        select(OrderItemRow).where(OrderItemRow.order_id == order_id)
+                    )
+                )
+                products = await self._lock_products(
+                    session, [item.product_id for item in items]
                 )
                 for item in items:
-                    product = await session.scalar(
-                        select(ProductRow)
-                        .where(ProductRow.id == item.product_id)
-                        .with_for_update()
-                    )
-                    product.stock += item.quantity
+                    products[item.product_id].stock += item.quantity
 
             row.status = status.value
             row.updated_at = datetime.now(timezone.utc)

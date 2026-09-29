@@ -27,6 +27,11 @@ class OrderRepository(ABC):
 
     @abstractmethod
     async def set_status(
-        self, order_id: int, status: OrderStatus, restore_stock: bool
+        self,
+        order_id: int,
+        status: OrderStatus,
+        allowed_from: set[OrderStatus],
+        restore_stock: bool,
     ) -> Order:
-        """Атомарно: смена статуса и (при отмене) возврат остатков."""
+        """Атомарно: проверка текущего статуса по allowed_from под блокировкой,
+        смена статуса и (при отмене) возврат остатков."""

@@ -8,7 +8,9 @@
 | Админ видит любой заказ | `is_admin` в `GetOrderById` |
 | `OrderItem` хранит цену и название на момент заказа; правки товара заказ не меняют | [`create_from_cart`](../../../src/orders/adapters/postgres.py) |
 | `total_price` = сумма `price × quantity` по позициям, считается на сервере по текущим ценам | там же |
-| Остаток не уходит в минус при параллельных заказах: строка товара блокируется `SELECT … FOR UPDATE` | `get_for_update` в `create_from_cart` |
+| Остаток не уходит в минус при параллельных заказах: строки товаров блокируются `SELECT … FOR UPDATE` | `_lock_products` в [`create_from_cart`](../../../src/orders/adapters/postgres.py) |
+| Товары блокируются всегда по возрастанию `id`: встречные корзины `[A, B]` и `[B, A]` не дают deadlock | `_lock_products` (`ORDER BY id`) |
+| Переход статуса проверяется под блокировкой строки заказа: параллельные отмены не вернут остаток дважды | `allowed_from` в [`set_status`](../../../src/orders/adapters/postgres.py) |
 | Заказ, списание остатков и очистка корзины — одна транзакция; при сбое ничего не меняется | одна `Database.transaction()` |
 | Отмена (владельцем или админом) возвращает остатки по всем позициям; статус и остатки меняются атомарно | [`set_status`](../../../src/orders/adapters/postgres.py) |
 | Возврат остатков только при переходе в `cancelled`; других списаний/возвратов нет | `restore_stock` в `change_status` |

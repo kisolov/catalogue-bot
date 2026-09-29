@@ -4,7 +4,7 @@ Backend каталога товаров для Telegram Mini App: вход че�
 корзина, избранное, заказы с контролем остатков.
 
 **Стек:** Python 3.12 · FastAPI · SQLAlchemy 2.0 async + asyncpg (PostgreSQL) · Redis ·
-`dependency-injector` · pytest (133 теста) · Docker Compose + nginx · GitHub Actions.
+`dependency-injector` · pytest (136 тестов) · Docker Compose + nginx · GitHub Actions.
 
 ## Что здесь интересного
 
@@ -15,7 +15,7 @@ Backend каталога товаров для Telegram Mini App: вход че�
 | Целостность заказов | оформление одной транзакцией, `SELECT … FOR UPDATE` по товарам: два покупателя одного последнего товара дают `201` и `409`, остаток не уходит в минус; проверено тестом и мутацией |
 | Данные | миграции с учётом версий (`schema_migrations`), `ON DELETE RESTRICT`, ошибки БД превращаются в `404` / `409` / `422`, а не в `500` |
 | Безопасность | подпись Telegram `initData` (HMAC-SHA256), JWT с отзывом через Redis, роли, rate limit в nginx, секреты только из окружения |
-| Тесты | 133 теста по группам в [`tests/cases/groups/`](tests/cases/groups), схема тестовой БД пересоздаётся перед каждым тестом, тесты гонок и параллельных чтений |
+| Тесты | 136 тестов по группам в [`tests/cases/groups/`](tests/cases/groups), схема тестовой БД пересоздаётся перед каждым тестом, тесты гонок и параллельных чтений |
 | Документация | архитектура, сценарии, инварианты, отказы и обоснование решений по каждому домену: [`docs/services/`](docs/services/ARCHITECTURE.md) |
 
 ## Возможности

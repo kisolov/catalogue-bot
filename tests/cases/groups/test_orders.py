@@ -3,11 +3,16 @@ import asyncio
 import pytest
 from decimal import Decimal
 
-from sqlalchemy import update
+from sqlalchemy import select, text, update
+from sqlalchemy.exc import DBAPIError
 
 from src.cart.models import AddCartItemCmd
-from src.shared.exceptions import InsufficientStockException
-from src.shared.orm.models import ProductRow
+from src.orders.models import OrderStatus
+from src.shared.exceptions import (
+    InsufficientStockException,
+    InvalidOrderTransitionException,
+)
+from src.shared.orm.models import OrderRow, ProductRow
 from tests.cases.base import BaseTestGroup
 from tests.fixtures.models import ModelsFixtures
 
@@ -334,3 +339,101 @@ class TestOrdersConcurrency(BaseTestGroup, ModelsFixtures):
         # без FOR UPDATE заказ прочитал бы устаревший остаток и продал его снова
         with pytest.raises(InsufficientStockException):
             await asyncio.wait_for(task, timeout=5)
+
+    async def test_order_locks_products_in_id_order(self, sample_user, product_factory):
+        first = await product_factory.create(stock=5)
+        second = await product_factory.create(stock=5)
+        # корзина в обратном порядке: сначала товар с большим id
+        for product in (second, first):
+            await self.container.cart_service().add_item(
+                AddCartItemCmd(
+                    user_id=sample_user.id, product_id=product.id, quantity=1
+                )
+            )
+        repo = self.container.order_repo()
+
+        async with self.container.database().transaction() as session:
+            await session.execute(
+                select(ProductRow).where(ProductRow.id == first.id).with_for_update()
+            )
+            task = asyncio.create_task(repo.create_from_cart(sample_user.id))
+            await asyncio.sleep(0.3)
+            # заказ ждёт first и не должен успеть захватить second: иначе
+            # встречный заказ [first, second] получил бы deadlock
+            await session.execute(text("SET LOCAL lock_timeout = '1s'"))
+            try:
+                await session.execute(
+                    select(ProductRow)
+                    .where(ProductRow.id == second.id)
+                    .with_for_update()
+                )
+            except DBAPIError:
+                pytest.fail("заказ блокирует товары не по возрастанию id")
+
+        order = await asyncio.wait_for(task, timeout=5)
+        assert order.status == OrderStatus.NEW
+
+    async def test_crossed_carts_order_in_parallel_without_deadlock(
+        self, user_factory, product_factory, fastapi_client
+    ):
+        first = await product_factory.create(stock=100)
+        second = await product_factory.create(stock=100)
+        rounds = 10
+        for _ in range(rounds):
+            headers = []
+            for products in ((first, second), (second, first)):
+                user = await user_factory.create()
+                for product in products:
+                    await self.container.cart_service().add_item(
+                        AddCartItemCmd(
+                            user_id=user.id, product_id=product.id, quantity=1
+                        )
+                    )
+                token = await self.container.token_service().create_token(user.id)
+                headers.append({"Authorization": f"Bearer {token}"})
+
+            responses = await asyncio.gather(
+                *(fastapi_client.post("/api/orders/", headers=h) for h in headers)
+            )
+
+            assert [r.status_code for r in responses] == [201, 201]
+
+        for product in (first, second):
+            current = await self.container.product_service().get_by_id(product.id)
+            assert current.stock == 100 - 2 * rounds
+
+    async def test_parallel_cancel_restores_stock_once(
+        self, sample_user, sample_product
+    ):
+        await self.container.cart_service().add_item(
+            AddCartItemCmd(
+                user_id=sample_user.id, product_id=sample_product.id, quantity=2
+            )
+        )
+        order = await self.container.order_repo().create_from_cart(sample_user.id)
+        stock_after_order = sample_product.stock - 2
+        service = self.container.order_service()
+
+        # держим строку заказа, пока владелец и админ оба прочитают статус new
+        async with self.container.database().transaction() as session:
+            await session.execute(
+                select(OrderRow).where(OrderRow.id == order.id).with_for_update()
+            )
+            by_owner = asyncio.create_task(
+                service.cancel_by_owner(order.id, sample_user.id)
+            )
+            by_admin = asyncio.create_task(
+                service.change_status(order.id, OrderStatus.CANCELLED)
+            )
+            await asyncio.sleep(0.3)
+
+        results = await asyncio.wait_for(
+            asyncio.gather(by_owner, by_admin, return_exceptions=True), timeout=5
+        )
+
+        rejected = [
+            r for r in results if isinstance(r, InvalidOrderTransitionException)
+        ]
+        assert len(rejected) == 1
+        current = await self.container.product_service().get_by_id(sample_product.id)
+        assert current.stock == stock_after_order + 2
