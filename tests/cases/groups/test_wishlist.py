@@ -10,12 +10,12 @@ class TestWishlistEndpoints(BaseTestGroup, ModelsFixtures):
     async def test_get_wishlist_success(
         self, sample_user, wishlist_factory, fastapi_client
     ):
-        wishlist = wishlist_factory.create(user_id=sample_user.id)
+        wishlist = await wishlist_factory.create(user_id=sample_user.id)
         token_service = self.container.token_service()
-        token = token_service.create_token(sample_user.id)
+        token = await token_service.create_token(sample_user.id)
         headers = {"Authorization": f"Bearer {token}"}
 
-        response = fastapi_client.get(
+        response = await fastapi_client.get(
             "/api/wishlist/products",
             headers=headers,
         )
@@ -26,7 +26,7 @@ class TestWishlistEndpoints(BaseTestGroup, ModelsFixtures):
         assert len(response_data["products"]) > 0
 
     async def test_get_wishlist_unauthorized(self, fastapi_client):
-        response = fastapi_client.get("/api/wishlist/products")
+        response = await fastapi_client.get("/api/wishlist/products")
 
         assert response.status_code == 401
 
@@ -35,7 +35,7 @@ class TestWishlistEndpoints(BaseTestGroup, ModelsFixtures):
     ):
         request_data = AddInWishlistRequest(product_id=sample_product.id)
 
-        response = fastapi_client.post(
+        response = await fastapi_client.post(
             "/api/wishlist/products",
             json=request_data.model_dump(),
             headers=auth_headers,
@@ -49,7 +49,7 @@ class TestWishlistEndpoints(BaseTestGroup, ModelsFixtures):
     async def test_add_to_wishlist_unauthorized(self, sample_product, fastapi_client):
         request_data = AddInWishlistRequest(product_id=sample_product.id)
 
-        response = fastapi_client.post(
+        response = await fastapi_client.post(
             "/api/wishlist/products",
             json=request_data.model_dump(),
         )
@@ -59,13 +59,13 @@ class TestWishlistEndpoints(BaseTestGroup, ModelsFixtures):
     async def test_remove_from_wishlist_success(
         self, sample_user, wishlist_factory, fastapi_client
     ):
-        wishlist = wishlist_factory.create(user_id=sample_user.id)
+        wishlist = await wishlist_factory.create(user_id=sample_user.id)
         product_id = wishlist.products[0].product_id
         token_service = self.container.token_service()
-        token = token_service.create_token(sample_user.id)
+        token = await token_service.create_token(sample_user.id)
         headers = {"Authorization": f"Bearer {token}"}
 
-        response = fastapi_client.delete(
+        response = await fastapi_client.delete(
             f"/api/wishlist/products/{product_id}",
             headers=headers,
         )
@@ -73,7 +73,7 @@ class TestWishlistEndpoints(BaseTestGroup, ModelsFixtures):
         assert response.status_code == 204
 
         # Проверяем, что продукт удален
-        get_response = fastapi_client.get(
+        get_response = await fastapi_client.get(
             "/api/wishlist/products",
             headers=headers,
         )
@@ -83,7 +83,7 @@ class TestWishlistEndpoints(BaseTestGroup, ModelsFixtures):
 
 class TestWishlistProductCheck(BaseTestGroup, ModelsFixtures):
     async def test_add_missing_product_is_404(self, auth_headers, fastapi_client):
-        response = fastapi_client.post(
+        response = await fastapi_client.post(
             "/api/wishlist/products",
             json={"product_id": 99999},
             headers=auth_headers,

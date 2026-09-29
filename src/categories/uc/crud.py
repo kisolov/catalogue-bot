@@ -11,7 +11,7 @@ class CreateCategory:
         self.service = service
 
     async def __call__(self, cmd: CreateCategoryCmd) -> Category:
-        category = self.service.create(cmd)
+        category = await self.service.create(cmd)
         logger.info("Category created", extra={"category_id": category.id})
         return category
 
@@ -21,7 +21,7 @@ class UpdateCategory:
         self.service = service
 
     async def __call__(self, cmd: UpdateCategoryCmd) -> Category:
-        category = self.service.update(cmd)
+        category = await self.service.update(cmd)
         logger.info("Category updated", extra={"category_id": category.id})
         return category
 
@@ -31,7 +31,7 @@ class GetCategoryById:
         self.service = service
 
     async def __call__(self, category_id: int) -> Category:
-        return self.service.get_by_id(category_id)
+        return await self.service.get_by_id(category_id)
 
 
 class ListCategories:
@@ -39,7 +39,7 @@ class ListCategories:
         self.service = service
 
     async def __call__(self, page: Pagination | None = None) -> List[Category]:
-        return self.service.list(page=page)
+        return await self.service.list(page=page)
 
 
 class DeleteCategory:
@@ -47,5 +47,5 @@ class DeleteCategory:
         self.service = service
 
     async def __call__(self, category_id: int) -> None:
-        self.service.delete(category_id)
+        await self.service.delete(category_id)
         logger.info("Category deleted", extra={"category_id": category_id})

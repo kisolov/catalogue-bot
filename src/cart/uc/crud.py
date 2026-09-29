@@ -7,7 +7,7 @@ class GetCart:
         self.service = service
 
     async def __call__(self, user_id: int) -> Cart:
-        return self.service.get_by_user_id(user_id)
+        return await self.service.get_by_user_id(user_id)
 
 
 class AddToCart:
@@ -15,7 +15,7 @@ class AddToCart:
         self.service = service
 
     async def __call__(self, cmd: AddCartItemCmd) -> CartItem:
-        return self.service.add_item(cmd)
+        return await self.service.add_item(cmd)
 
 
 class RemoveFromCart:
@@ -23,7 +23,7 @@ class RemoveFromCart:
         self.service = service
 
     async def __call__(self, cmd: RemoveCartItemCmd) -> None:
-        self.service.remove_item(cmd)
+        await self.service.remove_item(cmd)
 
 
 class ClearCart:
@@ -31,4 +31,4 @@ class ClearCart:
         self.service = service
 
     async def __call__(self, user_id: int) -> None:
-        self.service.clear(user_id)
+        await self.service.clear(user_id)

@@ -10,9 +10,9 @@ class AuthenticateByToken:
         self.user_service = user_service
 
     async def __call__(self, token: str) -> User:
-        user_id = self.token_service.verify_token(token)
+        user_id = await self.token_service.verify_token(token)
         try:
-            return self.user_service.get_by_id(user_id)
+            return await self.user_service.get_by_id(user_id)
         except NotFoundException:
             # токен валиден, но пользователь удалён
             raise InvalidTokenException()
@@ -23,4 +23,4 @@ class GetMe:
         self.user_service = user_service
 
     async def __call__(self, user_id: int) -> User:
-        return self.user_service.get_by_id(user_id)
+        return await self.user_service.get_by_id(user_id)

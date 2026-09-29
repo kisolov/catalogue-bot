@@ -16,7 +16,7 @@
 
 | Слой | Файл |
 |---|---|
-| Port → adapter | [`ProductRepository`](../../../src/products/ports.py) → [`PonyProductRepository`](../../../src/products/adapters/pony.py) |
+| Port → adapter | [`ProductRepository`](../../../src/products/ports.py) → [`PostgresProductRepository`](../../../src/products/adapters/postgres.py) |
 | Service | [`ProductService`](../../../src/products/services.py) |
 | Use case | [`CreateProduct`, `UpdateProduct`, `GetProductById`, `ListProducts`, `DeleteProduct`](../../../src/products/uc/crud.py) |
 | DTO | [`CreateProductRequest`, `UpdateProductRequest`](../../../src/products/schema.py) |

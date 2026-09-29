@@ -16,7 +16,7 @@
 
 | Слой | Файл |
 |---|---|
-| Port → adapter | [`CartRepository`](../../../src/cart/ports.py) → [`PonyCartRepository`](../../../src/cart/adapters/pony.py) |
+| Port → adapter | [`CartRepository`](../../../src/cart/ports.py) → [`PostgresCartRepository`](../../../src/cart/adapters/postgres.py) |
 | Service | [`CartService`](../../../src/cart/services.py) |
 | Use case | [`GetCart`, `AddToCart`, `RemoveFromCart`, `ClearCart`](../../../src/cart/uc/crud.py) |
 | DTO | [`AddInCartRequest {product_id, quantity}`](../../../src/cart/schema.py) |

@@ -1,7 +1,7 @@
 from dependency_injector import containers, providers
 
 from di import Container
-from tests.utils.test_db import TestPonyDb
+from tests.utils.test_db import TestDatabase
 from tests.utils.memory_token_repo import MemoryTokenRepository
 from tests.utils.factories import (
     CategoryFactory,
@@ -19,7 +19,7 @@ from src.auth.services import TokenService
 
 class TestContainer(Container):
     # ---- adapters ----
-    pony_db = providers.Resource(TestPonyDb, Container.db_settings)
+    database = providers.Singleton(TestDatabase, Container.db_settings)
     token_repo = providers.Singleton(MemoryTokenRepository)
 
     token_service = providers.Singleton(
@@ -66,6 +66,7 @@ class TestContainer(Container):
     telegram_settings = providers.Singleton(
         TelegramSettings, bot_token=SecretStr("123456:TEST-BOT-TOKEN")
     )
+    Container.database.override(database)
     Container.telegram_settings.override(telegram_settings)
     Container.token_repo.override(token_repo)
     Container.token_service.override(token_service)

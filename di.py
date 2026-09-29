@@ -12,18 +12,18 @@ from src.auth.services import TokenService
 from src.auth.telegram import TelegramInitDataService
 from src.auth.uc.session import AuthenticateByToken, GetMe
 from src.auth.uc.telegram import LoginWithTelegram, Logout
-from src.cart.adapters.pony import PonyCartRepository
-from src.categories.adapters.pony import PonyCategoryRepository
-from src.orders.adapters.pony import PonyOrderRepository
-from src.products.adapters.pony import PonyProductRepository
-from src.shared.orm import PonyDb
-from src.users.adapters.pony import PonyUserRepository
+from src.cart.adapters.postgres import PostgresCartRepository
+from src.categories.adapters.postgres import PostgresCategoryRepository
+from src.orders.adapters.postgres import PostgresOrderRepository
+from src.products.adapters.postgres import PostgresProductRepository
+from src.shared.db import Database
+from src.users.adapters.postgres import PostgresUserRepository
 from src.users.services import UserService
 from src.products.services import ProductService
 from src.categories.services import CategoryService
 from src.cart.services import CartService
 from src.orders.services import OrderService
-from src.wishlist.adapters.pony import PonyWishlistRepository
+from src.wishlist.adapters.postgres import PostgresWishlistRepository
 from src.wishlist.services import WishlistService
 
 from src.users.uc import crud as user_crud_uc
@@ -42,15 +42,15 @@ class Container(containers.DeclarativeContainer):
     telegram_settings = providers.Singleton(TelegramSettings)
 
     # ---- adapters ----
-    pony_db = providers.Resource(PonyDb, db_settings)
+    database = providers.Singleton(Database, db_settings)
 
     # ---- repositories ----
-    user_repo = providers.Singleton(PonyUserRepository)
-    product_repo = providers.Singleton(PonyProductRepository)
-    category_repo = providers.Singleton(PonyCategoryRepository)
-    cart_repo = providers.Singleton(PonyCartRepository)
-    order_repo = providers.Singleton(PonyOrderRepository)
-    wishlist_repo = providers.Singleton(PonyWishlistRepository)
+    user_repo = providers.Singleton(PostgresUserRepository, db=database)
+    product_repo = providers.Singleton(PostgresProductRepository, db=database)
+    category_repo = providers.Singleton(PostgresCategoryRepository, db=database)
+    cart_repo = providers.Singleton(PostgresCartRepository, db=database)
+    order_repo = providers.Singleton(PostgresOrderRepository, db=database)
+    wishlist_repo = providers.Singleton(PostgresWishlistRepository, db=database)
     token_repo = providers.Singleton(RedisTokenRepository, settings=redis_settings)
 
     # ---- services ----

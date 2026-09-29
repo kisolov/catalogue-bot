@@ -16,7 +16,7 @@ class ProductFactory:
         self.category_factory = category_factory
         self.faker = Faker()
 
-    def create(
+    async def create(
         self,
         name: Optional[str] = None,
         slug: Optional[str] = None,
@@ -44,7 +44,7 @@ class ProductFactory:
             stock = self.faker.random_int(min=0, max=100)
 
         if category_id is None:
-            category = self.category_factory.create()
+            category = await self.category_factory.create()
             category_id = category.id
 
         cmd = CreateProductCmd(
@@ -58,4 +58,4 @@ class ProductFactory:
             is_active=is_active,
             category_id=category_id,
         )
-        return self.product_service.create(cmd)
+        return await self.product_service.create(cmd)

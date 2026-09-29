@@ -1,14 +1,18 @@
 import pytest
 
-from fastapi.testclient import TestClient
+import httpx
 
 from src.bootstrap import ServerFactory
 
 
 class FastAPIFixtures:
     @pytest.fixture
-    def fastapi_client(self, container):
+    async def fastapi_client(self, container):
         server_factory = ServerFactory(container.server_settings())
 
         app = server_factory._configure_app()
-        return TestClient(app)
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            yield client

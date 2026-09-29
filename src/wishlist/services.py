@@ -11,11 +11,11 @@ class WishlistService:
     def __init__(self, repo: WishlistRepository):
         self.repo = repo
 
-    def add(self, cmd: AddInWishlistCmd) -> Favorite:
-        return self.repo.add(cmd)
+    async def add(self, cmd: AddInWishlistCmd) -> Favorite:
+        return await self.repo.add(cmd)
 
-    def remove(self, cmd: RemoveFromWishlistCmd) -> None:
-        self.repo.remove(cmd)
+    async def remove(self, cmd: RemoveFromWishlistCmd) -> None:
+        await self.repo.remove(cmd)
 
-    def get(self, user_id) -> Wishlist:
-        return self.repo.get(user_id)
+    async def get(self, user_id) -> Wishlist:
+        return await self.repo.get(user_id)

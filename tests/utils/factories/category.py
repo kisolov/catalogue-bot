@@ -9,7 +9,7 @@ class CategoryFactory:
         self.category_service = category_service
         self.faker = Faker()
 
-    def create(
+    async def create(
         self,
         name: Optional[str] = None,
         slug: Optional[str] = None,
@@ -25,4 +25,4 @@ class CategoryFactory:
             slug=slug,
             parent_id=parent_id,
         )
-        return self.category_service.create(cmd)
+        return await self.category_service.create(cmd)

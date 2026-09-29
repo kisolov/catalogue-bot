@@ -11,12 +11,12 @@ class TestCartEndpoints(BaseTestGroup, ModelsFixtures):
         self, sample_user, cart_factory, fastapi_client, container
     ):
         token_service = container.token_service()
-        token = token_service.create_token(sample_user.id)
+        token = await token_service.create_token(sample_user.id)
         auth_headers = {"Authorization": f"Bearer {token}"}
 
-        cart = cart_factory.create(user_id=sample_user.id)
+        cart = await cart_factory.create(user_id=sample_user.id)
 
-        response = fastapi_client.get(
+        response = await fastapi_client.get(
             "/api/cart/products",
             headers=auth_headers,
         )
@@ -27,7 +27,7 @@ class TestCartEndpoints(BaseTestGroup, ModelsFixtures):
         assert len(response_data["items"]) > 0
 
     async def test_get_cart_unauthorized(self, fastapi_client):
-        response = fastapi_client.get("/api/cart/products")
+        response = await fastapi_client.get("/api/cart/products")
 
         assert response.status_code == 401
 
@@ -39,7 +39,7 @@ class TestCartEndpoints(BaseTestGroup, ModelsFixtures):
             quantity=2,
         )
 
-        response = fastapi_client.post(
+        response = await fastapi_client.post(
             "/api/cart/products",
             json=request_data.model_dump(),
             headers=auth_headers,
@@ -56,7 +56,7 @@ class TestCartEndpoints(BaseTestGroup, ModelsFixtures):
             quantity=1,
         )
 
-        response = fastapi_client.post(
+        response = await fastapi_client.post(
             "/api/cart/products",
             json=request_data.model_dump(),
         )
@@ -66,10 +66,10 @@ class TestCartEndpoints(BaseTestGroup, ModelsFixtures):
     async def test_remove_from_cart_success(
         self, sample_user, cart_factory, auth_headers, fastapi_client
     ):
-        cart = cart_factory.create(user_id=sample_user.id)
+        cart = await cart_factory.create(user_id=sample_user.id)
         product_id = cart.items[0].product_id
 
-        response = fastapi_client.delete(
+        response = await fastapi_client.delete(
             f"/api/cart/products/{product_id}",
             headers=auth_headers,
         )
@@ -79,16 +79,16 @@ class TestCartEndpoints(BaseTestGroup, ModelsFixtures):
     async def test_clear_cart_success(
         self, sample_user, cart_factory, auth_headers, fastapi_client
     ):
-        cart_factory.create(user_id=sample_user.id)
+        await cart_factory.create(user_id=sample_user.id)
 
-        response = fastapi_client.delete(
+        response = await fastapi_client.delete(
             "/api/cart/products",
             headers=auth_headers,
         )
 
         assert response.status_code == 204
 
-        get_response = fastapi_client.get(
+        get_response = await fastapi_client.get(
             "/api/cart/products",
             headers=auth_headers,
         )
@@ -101,7 +101,7 @@ class TestCartQuantity(BaseTestGroup, ModelsFixtures):
     async def test_quantity_out_of_range_is_422(
         self, quantity, sample_product, auth_headers, fastapi_client
     ):
-        response = fastapi_client.post(
+        response = await fastapi_client.post(
             "/api/cart/products",
             json={"product_id": sample_product.id, "quantity": quantity},
             headers=auth_headers,
@@ -113,11 +113,11 @@ class TestCartQuantity(BaseTestGroup, ModelsFixtures):
         self, sample_product, auth_headers, fastapi_client
     ):
         payload = {"product_id": sample_product.id, "quantity": 600}
-        first = fastapi_client.post(
+        first = await fastapi_client.post(
             "/api/cart/products", json=payload, headers=auth_headers
         )
 
-        second = fastapi_client.post(
+        second = await fastapi_client.post(
             "/api/cart/products", json=payload, headers=auth_headers
         )
 

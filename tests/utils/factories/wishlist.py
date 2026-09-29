@@ -16,17 +16,17 @@ class WishlistFactory:
         self.product_factory = product_factory
         self.user_factory = user_factory
 
-    def create(
+    async def create(
         self,
         user_id: Optional[int] = None,
         product_ids: Optional[List[int]] = None,
     ) -> Wishlist:
         if user_id is None:
-            user = self.user_factory.create()
+            user = await self.user_factory.create()
             user_id = user.id
 
         if product_ids is None:
-            product = self.product_factory.create()
+            product = await self.product_factory.create()
             product_ids = [product.id]
 
         for product_id in product_ids:
@@ -34,6 +34,6 @@ class WishlistFactory:
                 user_id=user_id,
                 product_id=product_id,
             )
-            self.wishlist_service.add(cmd)
+            await self.wishlist_service.add(cmd)
 
-        return self.wishlist_service.get(user_id)
+        return await self.wishlist_service.get(user_id)

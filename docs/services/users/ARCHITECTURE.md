@@ -15,7 +15,7 @@
 
 | Слой | Файл |
 |---|---|
-| Port → adapter | [`UserRepository`](../../../src/users/ports.py) → [`PonyUserRepository`](../../../src/users/adapters/pony.py) (`get_by_id`, `get_by_telegram_id`, `create`) |
+| Port → adapter | [`UserRepository`](../../../src/users/ports.py) → [`PostgresUserRepository`](../../../src/users/adapters/postgres.py) (`get_by_id`, `get_by_telegram_id`, `create`) |
 | Service | [`UserService`](../../../src/users/services.py) — тонкая обёртка над портом |
 | Use case | [`CreateUser`, `GetUserById`, `GetUserByTelegramId`](../../../src/users/uc/crud.py) |
 | DTO | [`CreateUserRequest`](../../../src/users/schema.py) |

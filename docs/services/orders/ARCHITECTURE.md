@@ -15,7 +15,7 @@
 
 | Слой | Файл |
 |---|---|
-| Port → adapter | [`OrderRepository`](../../../src/orders/ports.py) → [`PonyOrderRepository`](../../../src/orders/adapters/pony.py) |
+| Port → adapter | [`OrderRepository`](../../../src/orders/ports.py) → [`PostgresOrderRepository`](../../../src/orders/adapters/postgres.py) |
 | Service | [`OrderService`](../../../src/orders/services.py): видимость заказа, матрица статусов, отмена владельцем |
 | Use case | [`CreateOrderFromCart`, `GetOrderById`, `ListOrdersByUser`, `UpdateOrderStatus`, `CancelOrder`](../../../src/orders/uc/crud.py) |
 | DTO | [`UpdateOrderStatusRequest {status}`](../../../src/orders/schema.py) |

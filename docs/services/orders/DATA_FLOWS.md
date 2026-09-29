@@ -3,8 +3,8 @@
 ## Оформление заказа
 
 ```
-POST /orders/ → CreateOrderFromCart(user_id) → OrderService → PonyOrderRepository.create_from_cart
-  один db_session (одна транзакция):
+POST /orders/ → CreateOrderFromCart(user_id) → OrderService → PostgresOrderRepository.create_from_cart
+  одна транзакция (`Database.transaction()`):
     корзина пуста                       → EmptyCart          (409)
     для каждой позиции: SELECT ... FOR UPDATE по товару
       товар неактивен                   → ProductUnavailable (409)

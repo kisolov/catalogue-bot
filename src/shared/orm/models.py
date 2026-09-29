@@ -1,150 +1,120 @@
 from datetime import datetime
 from decimal import Decimal
-from enum import Enum
 
-from pony.orm import *
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+    BigInteger,
+    func,
+)
+from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-
-class UserRole(Enum):
-    USER = "user"
-    ADMIN = "admin"
-
-
-class OrderStatus(Enum):
-    NEW = "new"
-    PROCESSING = "processing"
-    SHIPPED = "shipped"
-    DELIVERED = "delivered"
-    CANCELLED = "cancelled"
-
-
-db = Database()
-
-
-class PonyUser(db.Entity):
-    _table_ = "users"
-
-    id = PrimaryKey(int, auto=True)
-    telegram_id = Optional(int, unique=True, size=64)
-    role = Required(str, default=UserRole.USER.value)
-    created_at = Required(datetime, default=datetime.now)
-    updated_at = Required(datetime, default=datetime.now)
-
-    cart_items = Set("PonyCartItem")
-    orders = Set("PonyOrder")
-    favorites = Set("PonyFavorite")
-
-    @property
-    def role_enum(self) -> UserRole:
-        return UserRole(self.role)
-
-    @role_enum.setter
-    def role_enum(self, value: UserRole):
-        if not isinstance(value, UserRole):
-            raise TypeError("role_enum must be an instance of UserRole")
-        self.role = value.value
+# Типы enum создаёт миграция, ORM их только использует.
+USER_ROLE = ENUM("user", "admin", name="user_role_enum", create_type=False)
+ORDER_STATUS = ENUM(
+    "new",
+    "processing",
+    "shipped",
+    "delivered",
+    "cancelled",
+    name="order_status_enum",
+    create_type=False,
+)
 
 
-class PonyCategory(db.Entity):
-    _table_ = "categories"
-
-    id = PrimaryKey(int, auto=True)
-    name = Required(str, 100)
-    slug = Required(str, 100, unique=True)
-    created_at = Required(datetime, default=datetime.now)
-
-    # ИСПРАВЛЕНО: Явно указываем имя колонки для внешнего ключа
-    parent = Optional("PonyCategory", column="parent_id", reverse="children")
-    children = Set("PonyCategory", reverse="parent")
-    products = Set("PonyProduct", cascade_delete=False)
+def _timestamp() -> Mapped[datetime]:
+    return mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-class PonyProduct(db.Entity):
-    _table_ = "products"
-
-    id = PrimaryKey(int, auto=True)
-    name = Required(str, 200)
-    slug = Required(str, 200, unique=True)
-    description = Optional(str, lazy=True, nullable=True)
-    sku = Optional(str, 50, unique=True, nullable=True)
-    price = Required(Decimal, 10, 2)
-    compare_at_price = Optional(Decimal, 10, 2)
-    stock = Required(int, default=0)
-    is_active = Required(bool, default=True)
-    created_at = Required(datetime, default=datetime.now)
-    updated_at = Required(datetime, default=datetime.now)
-    # ИСПРАВЛЕНО: Добавлено отсутствующее поле fts
-    fts = Optional(str, lazy=True)
-
-    # ИСПРАВЛЕНО: Явно указываем имя колонки для внешнего ключа
-    category = Required(PonyCategory, column="category_id")
-
-    cart_items = Set("PonyCartItem")
-    order_items = Set("PonyOrderItem")
-    favorites = Set("PonyFavorite")
+class Base(DeclarativeBase):
+    """Строки таблиц. Связей (relationship) нет намеренно: в async ленивая
+    подгрузка недоступна, поэтому внешние ключи читаются как обычные колонки."""
 
 
-class PonyCartItem(db.Entity):
-    _table_ = "cart_items"
+class UserRow(Base):
+    __tablename__ = "users"
 
-    id = PrimaryKey(int, auto=True)
-    quantity = Required(int, default=1)
-    added_at = Required(datetime, default=datetime.now)
-    updated_at = Required(datetime, default=datetime.now)
-
-    # ИСПРАВЛЕНО: Явно указываем имена колонок для внешних ключей
-    user = Required(PonyUser, column="user_id")
-    product = Required(PonyProduct, column="product_id")
-
-    # composite_key теперь будет использовать правильные атрибуты
-    composite_key(user, product)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    telegram_id: Mapped[int | None] = mapped_column(BigInteger, unique=True)
+    role: Mapped[str] = mapped_column(USER_ROLE, server_default="user")
+    created_at: Mapped[datetime] = _timestamp()
+    updated_at: Mapped[datetime] = _timestamp()
 
 
-class PonyOrder(db.Entity):
-    _table_ = "orders"
+class CategoryRow(Base):
+    __tablename__ = "categories"
 
-    id = PrimaryKey(int, auto=True)
-    status = Required(str, default=OrderStatus.NEW.value)
-    total_price = Required(Decimal, 12, 2)
-    created_at = Required(datetime, default=datetime.now)
-    updated_at = Required(datetime, default=datetime.now)
-
-    # ИСПРАВЛЕНО: Явно указываем имя колонки для внешнего ключа
-    user = Optional(PonyUser, column="user_id")
-    items = Set("PonyOrderItem")
-
-    @property
-    def status_enum(self) -> OrderStatus:
-        return OrderStatus(self.status)
-
-    @status_enum.setter
-    def status_enum(self, value: OrderStatus):
-        if not isinstance(value, OrderStatus):
-            raise TypeError("status_enum must be an instance of OrderStatus")
-        self.status = value.value
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))
+    slug: Mapped[str] = mapped_column(String(100), unique=True)
+    parent_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"))
+    created_at: Mapped[datetime] = _timestamp()
 
 
-class PonyOrderItem(db.Entity):
-    _table_ = "order_items"
+class ProductRow(Base):
+    __tablename__ = "products"
 
-    id = PrimaryKey(int, auto=True)
-    product_name = Required(str, 200)
-    price = Required(Decimal, 10, 2)
-    quantity = Required(int)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(200))
+    slug: Mapped[str] = mapped_column(String(200), unique=True)
+    description: Mapped[str | None] = mapped_column(Text)
+    sku: Mapped[str | None] = mapped_column(String(50), unique=True)
+    price: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    compare_at_price: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
+    stock: Mapped[int] = mapped_column(Integer, server_default="0")
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default="true")
+    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
+    created_at: Mapped[datetime] = _timestamp()
+    updated_at: Mapped[datetime] = _timestamp()
+    # fts (tsvector) ведёт триггер в БД, приложение его не читает и не пишет
 
-    # ИСПРАВЛЕНО: Явно указываем имена колонок для внешних ключей
-    order = Required(PonyOrder, column="order_id")
-    product = Required(PonyProduct, column="product_id")
+
+class CartItemRow(Base):
+    __tablename__ = "cart_items"
+    __table_args__ = (UniqueConstraint("user_id", "product_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+    quantity: Mapped[int] = mapped_column(Integer, server_default="1")
+    added_at: Mapped[datetime] = _timestamp()
+    updated_at: Mapped[datetime] = _timestamp()
 
 
-class PonyFavorite(db.Entity):
-    _table_ = "favorites"
+class OrderRow(Base):
+    __tablename__ = "orders"
 
-    id = PrimaryKey(int, auto=True)
-    added_at = Required(datetime, default=datetime.now)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    status: Mapped[str] = mapped_column(ORDER_STATUS, server_default="new")
+    total_price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    created_at: Mapped[datetime] = _timestamp()
+    updated_at: Mapped[datetime] = _timestamp()
 
-    # ИСПРАВЛЕНО: Явно указываем имена колонок для внешних ключей
-    user = Required(PonyUser, column="user_id")
-    product = Required(PonyProduct, column="product_id")
 
-    composite_key(user, product)
+class OrderItemRow(Base):
+    __tablename__ = "order_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+    product_name: Mapped[str] = mapped_column(String(200))
+    price: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    quantity: Mapped[int] = mapped_column(Integer)
+
+
+class FavoriteRow(Base):
+    __tablename__ = "favorites"
+    __table_args__ = (UniqueConstraint("user_id", "product_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+    added_at: Mapped[datetime] = _timestamp()

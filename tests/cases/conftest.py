@@ -34,10 +34,12 @@ def validate_environment():
 
 
 @pytest.fixture(autouse=True, scope="function")
-def container():
+async def container():
     test_container = TestContainer()
     test_container.wire(packages=["tests", "src", "src.auth"])
-    test_container.init_resources()
+    database = test_container.database()
+    await database.reset()
     production_container.override(test_container)
     yield test_container
-    test_container.shutdown_resources()
+    production_container.reset_override()
+    await database.dispose()

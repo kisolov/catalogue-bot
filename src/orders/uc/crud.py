@@ -11,7 +11,7 @@ class CreateOrder:
         self.service = service
 
     async def __call__(self, cmd: CreateOrderCmd) -> Order:
-        return self.service.create(cmd)
+        return await self.service.create(cmd)
 
 
 class CreateOrderFromCart:
@@ -19,7 +19,7 @@ class CreateOrderFromCart:
         self.service = service
 
     async def __call__(self, user_id: int) -> Order:
-        order = self.service.create_from_cart(user_id)
+        order = await self.service.create_from_cart(user_id)
         logger.info(
             "Order created from cart",
             extra={
@@ -38,7 +38,7 @@ class GetOrderById:
     async def __call__(
         self, order_id: int, user_id: int, is_admin: bool = False
     ) -> Order:
-        return self.service.get_visible(order_id, user_id, is_admin)
+        return await self.service.get_visible(order_id, user_id, is_admin)
 
 
 class ListOrdersByUser:
@@ -48,7 +48,7 @@ class ListOrdersByUser:
     async def __call__(
         self, user_id: int, page: Pagination | None = None
     ) -> List[Order]:
-        return self.service.list_by_user(user_id, page=page)
+        return await self.service.list_by_user(user_id, page=page)
 
 
 class UpdateOrderStatus:
@@ -56,7 +56,7 @@ class UpdateOrderStatus:
         self.service = service
 
     async def __call__(self, order_id: int, status: OrderStatus) -> Order:
-        order = self.service.change_status(order_id, status)
+        order = await self.service.change_status(order_id, status)
         logger.info(
             "Order status changed",
             extra={"order_id": order_id, "status": order.status.value},
@@ -69,7 +69,7 @@ class CancelOrder:
         self.service = service
 
     async def __call__(self, order_id: int, user_id: int) -> Order:
-        order = self.service.cancel_by_owner(order_id, user_id)
+        order = await self.service.cancel_by_owner(order_id, user_id)
         logger.info(
             "Order cancelled by owner", extra={"order_id": order_id, "user_id": user_id}
         )

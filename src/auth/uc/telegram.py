@@ -19,23 +19,25 @@ class LoginWithTelegram:
 
     async def __call__(self, init_data: str) -> tuple[str, User]:
         telegram_user = self.init_data_service.validate(init_data)
-        user = self._get_or_create(telegram_user.id)
-        token = self.token_service.create_token(user.id)
+        user = await self._get_or_create(telegram_user.id)
+        token = await self.token_service.create_token(user.id)
         logger.info("Telegram login", extra={"user_id": user.id})
         return token, user
 
-    def _get_or_create(self, telegram_id: int) -> User:
+    async def _get_or_create(self, telegram_id: int) -> User:
         try:
-            return self.user_service.get_by_telegram_id(telegram_id)
+            return await self.user_service.get_by_telegram_id(telegram_id)
         except NotFoundException:
             pass
         try:
-            user = self.user_service.create(CreateUserCmd(telegram_id=telegram_id))
+            user = await self.user_service.create(
+                CreateUserCmd(telegram_id=telegram_id)
+            )
             logger.info("User registered via Telegram", extra={"user_id": user.id})
             return user
         except UniqueViolationException:
             # параллельный первый вход того же пользователя
-            return self.user_service.get_by_telegram_id(telegram_id)
+            return await self.user_service.get_by_telegram_id(telegram_id)
 
 
 class Logout:
@@ -43,5 +45,5 @@ class Logout:
         self.token_service = token_service
 
     async def __call__(self, token: str) -> None:
-        self.token_service.revoke_token(token)
+        await self.token_service.revoke_token(token)
         logger.info("Logout")

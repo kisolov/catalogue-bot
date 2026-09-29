@@ -1,7 +1,7 @@
 # Catalogue backend
 
 Backend каталога товаров для Telegram Mini App: вход через Telegram, каталог,
-корзина, избранное, заказы с контролем остатков. FastAPI + Pony ORM (PostgreSQL) +
+корзина, избранное, заказы с контролем остатков. FastAPI + SQLAlchemy 2.0 async (asyncpg, PostgreSQL) +
 Redis, слоистая архитектура на `dependency-injector`.
 
 ## Возможности
@@ -102,7 +102,7 @@ src/
     ports.py       интерфейсы репозиториев
     services.py    бизнес-логика
     uc/            use case'ы (один сценарий — один класс)
-    adapters/      реализации портов (Pony, Redis)
+    adapters/      реализации портов (PostgreSQL через SQLAlchemy, Redis)
   bootstrap/       FastAPI: endpoints, middleware, обработка ошибок
   shared/          ORM-модели, БД и миграции, исключения, логгер
 ```

@@ -9,5 +9,6 @@
 | Redis | недоступен при проверке токена | любой защищённый запрос → 500; токены не проверяются «мягко» | [auth](auth/FAILURE_MODES.md) |
 | PostgreSQL | недоступен при старте | приложение не стартует, контейнер перезапускается; `depends_on: service_healthy` ждёт БД | [shared](shared/ARCHITECTURE.md) |
 | PostgreSQL | недоступен во время запроса | необработанное исключение драйвера → 500 | — |
+| PostgreSQL | все соединения пула заняты (`DB_POOL_MAX_SIZE`) | запрос ждёт свободного соединения до 30 с (значение SQLAlchemy по умолчанию), затем `TimeoutError` → 500; event loop при этом не блокируется | [shared](shared/ARCHITECTURE.md) |
 | PostgreSQL | ошибка внутри заказа или смены статуса | вся транзакция откатывается: остатки, корзина, заказ не меняются | [orders](orders/INVARIANTS.md) |
 | Настройки | нет `DB_*`, `JWT_SECRET_KEY`, `TELEGRAM_BOT_TOKEN` | [`main.py`](../../main.py) падает при старте с `ValidationError`, а не на первом запросе | [shared](shared/ARCHITECTURE.md) |

@@ -13,12 +13,14 @@ async def run_server() -> None:
         container.telegram_settings,
     ):
         settings()
-    container.init_resources()
+    database = container.database()
+    await database.migrate()
     try:
         server = ServerFactory(container.server_settings()).create_server()
         await server.serve()
     finally:
-        container.shutdown_resources()
+        await container.token_repo().close()
+        await database.dispose()
 
 
 if __name__ == "__main__":

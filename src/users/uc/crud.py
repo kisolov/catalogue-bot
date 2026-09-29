@@ -8,7 +8,7 @@ class CreateUser:
         self.user_service = user_service
 
     async def __call__(self, cmd: CreateUserCmd):
-        user = self.user_service.create(cmd)
+        user = await self.user_service.create(cmd)
         logger.info("User created by admin", extra={"user_id": user.id})
         return user
 
@@ -18,7 +18,7 @@ class GetUserById:
         self.user_service = user_service
 
     async def __call__(self, user_id: int):
-        return self.user_service.get_by_id(user_id)
+        return await self.user_service.get_by_id(user_id)
 
 
 class GetUserByTelegramId:
@@ -26,4 +26,4 @@ class GetUserByTelegramId:
         self.user_service = user_service
 
     async def __call__(self, telegram_id: int):
-        return self.user_service.get_by_telegram_id(telegram_id)
+        return await self.user_service.get_by_telegram_id(telegram_id)

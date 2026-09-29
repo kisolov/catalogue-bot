@@ -14,7 +14,7 @@
 
 | Слой | Файл |
 |---|---|
-| Port → adapter | [`CategoryRepository`](../../../src/categories/ports.py) → [`PonyCategoryRepository`](../../../src/categories/adapters/pony.py) |
+| Port → adapter | [`CategoryRepository`](../../../src/categories/ports.py) → [`PostgresCategoryRepository`](../../../src/categories/adapters/postgres.py) |
 | Service | [`CategoryService`](../../../src/categories/services.py) |
 | Use case | [`CreateCategory`, `UpdateCategory`, `GetCategoryById`, `ListCategories`, `DeleteCategory`](../../../src/categories/uc/crud.py) |
 | DTO | [`CreateCategoryRequest`, `UpdateCategoryRequest`](../../../src/categories/schema.py) |

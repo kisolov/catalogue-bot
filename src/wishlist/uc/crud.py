@@ -12,7 +12,7 @@ class AddInWishlist:
         self.service = service
 
     async def __call__(self, cmd: AddInWishlistCmd) -> Favorite:
-        return self.service.add(cmd)
+        return await self.service.add(cmd)
 
 
 class RemoveFromWishlist:
@@ -20,7 +20,7 @@ class RemoveFromWishlist:
         self.service = service
 
     async def __call__(self, cmd: RemoveFromWishlistCmd) -> None:
-        return self.service.remove(cmd)
+        return await self.service.remove(cmd)
 
 
 class GetWishlist:
@@ -28,4 +28,4 @@ class GetWishlist:
         self.service = service
 
     async def __call__(self, user_id: int) -> Wishlist:
-        return self.service.get(user_id)
+        return await self.service.get(user_id)

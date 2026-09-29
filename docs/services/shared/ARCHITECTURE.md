@@ -28,14 +28,33 @@ erDiagram
 | `order_items` | `price >= 0`, `quantity > 0`, `order_id → orders`, `product_id → products` (RESTRICT) |
 | `favorites` | `UNIQUE(user_id, product_id)` |
 
-Схема — [`db.sql`](../../../migrations/sql/db.sql) и [`db_002_products_category_restrict.sql`](../../../migrations/sql/db_002_products_category_restrict.sql). ORM-сущности (`Pony*`) —
+Схема — [`db.sql`](../../../migrations/sql/db.sql) и [`db_002_products_category_restrict.sql`](../../../migrations/sql/db_002_products_category_restrict.sql). Строки таблиц (`*Row`, SQLAlchemy 2.0) —
 [`shared/orm/models.py`](../../../src/shared/orm/models.py); доменные pydantic-модели от них
-независимы, адаптеры переводят одно в другое.
+независимы, адаптеры переводят одно в другое. `relationship` нет намеренно: в async ленивая
+подгрузка недоступна, поэтому внешние ключи читаются как обычные колонки, а связанные данные
+адаптер запрашивает явно. Типы `user_role_enum` и `order_status_enum` создаёт миграция, ORM только их использует.
+
+## Доступ к БД и асинхронность
+
+[`Database`](../../../src/shared/db.py) — async-движок SQLAlchemy 2.0 поверх `asyncpg`; регистрируется в DI
+обычным `Singleton`, конструктор ничего не подключает (соединения открываются лениво).
+
+| Что | Как |
+|---|---|
+| Транзакция | `async with db.transaction() as session` — одна на операцию адаптера: коммит при выходе, откат при любом исключении, в том числе доменном |
+| Пул | `pool_size = DB_POOL_MIN_SIZE`, `max_overflow = MAX − MIN` (`DB_POOL_MAX_SIZE`), `pool_pre_ping`; `search_path` задаётся схемой `DB_SCHEMA` |
+| Порты и сервисы | все методы репозиториев и сервисов — `async`, цепочка endpoint → use case → service → port везде с `await`: запрос к БД не блокирует event loop |
+| Redis | `redis.asyncio`, порт токенов тоже асинхронный |
+| Жизненный цикл | [`main.py`](../../../main.py): `migrate()` на старте, `dispose()` и `close()` Redis при остановке |
+
+Объекты `*Row` живут только внутри транзакции адаптера (`expire_on_commit=False`), наружу уходят
+доменные модели. Значения по умолчанию (`created_at`, `role`, …) адаптер задаёт явно, а не читает из БД после вставки.
 
 ## Миграции
 
-[`create_tables_from_migrations`](../../../src/shared/db.py) на старте применяет каждый `.sql`
-из каталога миграций один раз в алфавитном порядке (поэтому дополнительные файлы называются
+[`Database.migrate`](../../../src/shared/db.py) на старте применяет каждый `.sql`
+из каталога миграций один раз, в алфавитном порядке и в одной транзакции (через сырое
+соединение `asyncpg`: тела функций с `;` внутри `$BODY$` не влезают в prepared statement) (поэтому дополнительные файлы называются
 `db_00N_…`, а не `00N_…`, иначе они шли бы раньше `db.sql`); имена применённых лежат в
 `schema_migrations`. Если этой таблицы нет, но есть `users`, считается применённой только
 `db.sql` (совместимость со старыми установками), остальные выполняются. Повторный запуск безопасен.
@@ -49,7 +68,7 @@ erDiagram
 | Класс | Префикс | Переменные (по умолчанию) |
 |---|---|---|
 | `ServerSettings` | `SERVER_` | `HOST`, `PORT`, `ALLOWED_ORIGINS` (JSON-список, `*` запрещён), `FORWARDED_ALLOW_IPS` (`127.0.0.1`, `*` запрещён), `DOCS_ENABLED` (`true`; в compose по умолчанию `false`) |
-| `DatabaseSettings` | `DB_` | `PROVIDER`, `HOST` (`localhost`), `PORT` (`5432`), `USER`, `PASSWORD`, `NAME`, `SCHEMA`, `MIGRATIONS_PATH` |
+| `DatabaseSettings` | `DB_` | `PROVIDER`, `HOST` (`localhost`), `PORT` (`5432`), `USER`, `PASSWORD`, `NAME`, `SCHEMA`, `POOL_MIN_SIZE` (`5`), `POOL_MAX_SIZE` (`20`), `TIMEOUT` (`30`, подключение), `MIGRATIONS_PATH` |
 | `RedisSettings` | `REDIS_` | `HOST`, `PORT` (`6379`), `DB` (`0`), `PASSWORD`, `SSL`, `TIMEOUT`, `PREFIX` (`app:`) |
 | `JWTSettings` | `JWT_` | `SECRET_KEY`, `ALGORITHM` (`HS256`), `ACCESS_TOKEN_EXPIRES_MINUTES` (720, допустимо 1…10080) |
 | `TelegramSettings` | `TELEGRAM_` | `BOT_TOKEN`, `INIT_DATA_MAX_AGE_SECONDS` (86400) |

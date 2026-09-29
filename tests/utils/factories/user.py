@@ -9,7 +9,7 @@ class UserFactory:
         self.user_service = user_service
         self.faker = Faker()
 
-    def create(
+    async def create(
         self,
         telegram_id: Optional[int] = None,
         role: UserRole = UserRole.USER,
@@ -21,4 +21,4 @@ class UserFactory:
             telegram_id=telegram_id,
             role=role,
         )
-        return self.user_service.create(cmd)
+        return await self.user_service.create(cmd)

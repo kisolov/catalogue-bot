@@ -19,7 +19,7 @@ class OrderFactory:
         self.user_factory = user_factory
         self.faker = Faker()
 
-    def create(
+    async def create(
         self,
         user_id: Optional[int] = None,
         items: Optional[List[OrderItem]] = None,
@@ -27,11 +27,11 @@ class OrderFactory:
         status: OrderStatus = OrderStatus.NEW,
     ) -> Order:
         if user_id is None:
-            user = self.user_factory.create()
+            user = await self.user_factory.create()
             user_id = user.id
 
         if items is None:
-            product = self.product_factory.create()
+            product = await self.product_factory.create()
             items = [
                 OrderItem(
                     id=0,
@@ -51,10 +51,10 @@ class OrderFactory:
             items=items,
             total_price=total_price,
         )
-        order = self.order_service.create(cmd)
+        order = await self.order_service.create(cmd)
 
         if status != OrderStatus.NEW:
             order.status = status
-            order = self.order_service.update(order)
+            order = await self.order_service.update(order)
 
         return order

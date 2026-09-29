@@ -14,7 +14,7 @@
 
 | Слой | Файл |
 |---|---|
-| Port → adapter | [`WishlistRepository`](../../../src/wishlist/ports.py) → [`PonyWishlistRepository`](../../../src/wishlist/adapters/pony.py) |
+| Port → adapter | [`WishlistRepository`](../../../src/wishlist/ports.py) → [`PostgresWishlistRepository`](../../../src/wishlist/adapters/postgres.py) |
 | Service | [`WishlistService`](../../../src/wishlist/services.py) |
 | Use case | [`AddInWishlist`, `RemoveFromWishlist`, `GetWishlist`](../../../src/wishlist/uc/crud.py) |
 | DTO | [`AddInWishlistRequest {product_id}`](../../../src/wishlist/schema.py) |
