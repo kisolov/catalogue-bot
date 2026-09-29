@@ -53,7 +53,7 @@ redis==8.1.0
     # via catalogue-backend (pyproject.toml)
 six==1.17.0
     # via python-dateutil
-sqlalchemy==2.1.1
+sqlalchemy==2.0.54
     # via catalogue-backend (pyproject.toml)
 starlette==1.7.0
     # via fastapi

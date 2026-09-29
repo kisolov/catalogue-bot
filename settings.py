@@ -31,7 +31,6 @@ class ServerSettings(BaseSettings):
 
 
 class DatabaseSettings(BaseSettings):
-    provider: str
     host: str = "localhost"
     port: int = 5432
     user: str
@@ -40,7 +39,6 @@ class DatabaseSettings(BaseSettings):
     schema: str
     pool_min_size: int = 5
     pool_max_size: int = 20
-    ssl: bool = False
     timeout: int = 30
     migrations_path: str = "migrations/sql/db.sql"
 

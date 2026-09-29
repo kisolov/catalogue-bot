@@ -68,13 +68,13 @@ erDiagram
 | Класс | Префикс | Переменные (по умолчанию) |
 |---|---|---|
 | `ServerSettings` | `SERVER_` | `HOST`, `PORT`, `ALLOWED_ORIGINS` (JSON-список, `*` запрещён), `FORWARDED_ALLOW_IPS` (`127.0.0.1`, `*` запрещён), `DOCS_ENABLED` (`true`; в compose по умолчанию `false`) |
-| `DatabaseSettings` | `DB_` | `PROVIDER`, `HOST` (`localhost`), `PORT` (`5432`), `USER`, `PASSWORD`, `NAME`, `SCHEMA`, `POOL_MIN_SIZE` (`5`), `POOL_MAX_SIZE` (`20`), `TIMEOUT` (`30`, подключение), `MIGRATIONS_PATH` |
+| `DatabaseSettings` | `DB_` | `HOST` (`localhost`), `PORT` (`5432`), `USER`, `PASSWORD`, `NAME`, `SCHEMA`, `POOL_MIN_SIZE` (`5`), `POOL_MAX_SIZE` (`20`), `TIMEOUT` (`30`, подключение), `MIGRATIONS_PATH` |
 | `RedisSettings` | `REDIS_` | `HOST`, `PORT` (`6379`), `DB` (`0`), `PASSWORD`, `SSL`, `TIMEOUT`, `PREFIX` (`app:`) |
 | `JWTSettings` | `JWT_` | `SECRET_KEY`, `ALGORITHM` (`HS256`), `ACCESS_TOKEN_EXPIRES_MINUTES` (720, допустимо 1…10080) |
 | `TelegramSettings` | `TELEGRAM_` | `BOT_TOKEN`, `INIT_DATA_MAX_AGE_SECONDS` (86400) |
 
 Обязательны без значения по умолчанию: `DB_PASSWORD`, `REDIS_PASSWORD` (compose), `JWT_SECRET_KEY`, `TELEGRAM_BOT_TOKEN`, `SERVER_ALLOWED_ORIGINS`
-(плюс `DB_USER`, `DB_NAME`, `DB_SCHEMA`, `DB_PROVIDER`, `SERVER_*` в compose задаются сами). Образец — [`.env.example`](../../../.env.example).
+(плюс `DB_USER`, `DB_NAME`, `DB_SCHEMA`, `SERVER_*` в compose задаются сами). Образец — [`.env.example`](../../../.env.example).
 
 ## Пагинация
 

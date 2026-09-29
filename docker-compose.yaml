@@ -44,7 +44,6 @@ services:
       SERVER_ALLOWED_ORIGINS: ${SERVER_ALLOWED_ORIGINS:?задайте SERVER_ALLOWED_ORIGINS в .env, например ["https://shop.example.com"]}
       SERVER_DOCS_ENABLED: ${DOCS_ENABLED:-false}
       SERVER_FORWARDED_ALLOW_IPS: "172.28.0.0/16"  # подсеть compose, откуда ходит nginx
-      DB_PROVIDER: postgres
       DB_HOST: postgres
       DB_PORT: "5432"
       DB_USER: ${DB_USER:-catalogue}

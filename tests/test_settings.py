@@ -2,7 +2,6 @@ from settings import DatabaseSettings, JWTSettings, RedisSettings
 
 
 def test_database_settings_read_env(monkeypatch):
-    monkeypatch.setenv("DB_PROVIDER", "postgres")
     monkeypatch.setenv("DB_USER", "u")
     monkeypatch.setenv("DB_PASSWORD", "p")
     monkeypatch.setenv("DB_NAME", "n")

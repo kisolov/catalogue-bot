@@ -39,7 +39,7 @@ docker compose exec postgres psql -U catalogue -d catalogue \
 
 ```bash
 make install
-export DB_PROVIDER=postgres DB_HOST=localhost DB_PORT=5432 DB_USER=test \
+export DB_HOST=localhost DB_PORT=5432 DB_USER=test \
        DB_PASSWORD=test DB_NAME=catalogue_test DB_SCHEMA=public \
        REDIS_HOST=localhost JWT_SECRET_KEY=dev SERVER_ALLOWED_ORIGINS='["http://localhost"]' \
        SERVER_PORT=8000 SERVER_HOST=127.0.0.1 ENVIRONMENT=test

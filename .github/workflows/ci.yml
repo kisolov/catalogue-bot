@@ -39,7 +39,6 @@ jobs:
           --health-interval=5s --health-timeout=3s --health-retries=10
     env:
       ENVIRONMENT: test
-      DB_PROVIDER: postgres
       DB_HOST: localhost
       DB_PORT: "5432"
       DB_USER: test
